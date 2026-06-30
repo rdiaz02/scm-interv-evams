@@ -1,16 +1,29 @@
-### "Standard" HyperHMM code
-## From
-## https://github.com/rdiaz02/HT_test_run/blob/igj-hyperhmm/K_1_example/example_run.R
+### "Standard" HyperHMM code: before the HyperHMM package existed
 
-library(Rcpp)
-library(RcppArmadillo)
-library(igraph)
-library(ggraph)
-library(stringr)
-## The next file must either exist or by a symlink to the
-## existing one
-## It comes from https://github.com/StochasticBiology/hypercube-hmm
-sourceCpp("./HyperHMM_cpp_and_other_code/hyperhmm-r.cpp")
+## This is no longer necessary, because a HyperHMM package now
+## exists: https://github.com/StochasticBiology/hyperhmm
+
+if (FALSE) {
+  ## Based on
+  ## https://github.com/rdiaz02/HT_test_run/blob/igj-hyperhmm/K_1_example/example_run.R
+
+  library(Rcpp)
+  library(RcppArmadillo)
+  library(igraph)
+  library(ggraph)
+  library(stringr)
+  ## The next file must either exist or by a symlink to the
+  ## existing one
+  ## It comes from https://github.com/StochasticBiology/hypercube-hmm
+  sourceCpp("./HyperHMM_cpp_and_other_code-obsolete/hyperhmm-r.cpp")
+}
+
+
+### Load the HyperHMM package. If needed, install
+
+library(hyperhmm)
+## If not installed, install as
+## remotes::install_github("StochasticBiology/hyperhmm")
 
 ### Our code for running HyperHMM
 

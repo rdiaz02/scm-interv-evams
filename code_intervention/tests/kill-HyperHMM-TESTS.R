@@ -55,7 +55,7 @@ test_that("HyperHMM, error if trying to use wrong kill_gene funct", {
 
 
 test_that("HyperHMM interventions and predicted genot calculations", {
-    reps <- 5
+  reps <- 10
     for (i in 1:reps) {
         cat("\n ##### Doing rep = ", i, "\n")
         cat("\n ##### Doing 3 genes\n")
@@ -201,6 +201,26 @@ test_that("HyperHMM interventions and predicted genot calculations", {
         expect_equal(pp_B, o1[["I:B"]]$genot_freqs)
         expect_equal(pp_C, o1[["I:C"]]$genot_freqs)
 
+        ## Explicit hitting-prob checks for the intervened cases (the
+        ## genot_freqs checks above only verify WT mass implicitly via the
+        ## o1_X["WT", "WT"] <- h1_tm["WT", X] redirection). The hand-built
+        ## o1_X matrices equal kill_gene's output (verified in the
+        ## test_that("HyperHMM", ...) block below), so feeding them straight
+        ## to hitting_probs_from_WT reproduces the production path
+        ## (kill_gene -> get_full_output -> hitting_probs_from_WT). WT is
+        ## retained in the HP vector by filter_hp_keep_wt (its first-passage
+        ## hitting prob is 0 by convention).
+        expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_A)),
+                     o1[["I:A"]]$hitting_probs_from_WT)
+        expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_B)),
+                     o1[["I:B"]]$hitting_probs_from_WT)
+        expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_C)),
+                     o1[["I:C"]]$hitting_probs_from_WT)
+        ## WT must be present (kept by filter_hp_keep_wt) after intervention
+        expect_true("WT" %in% names(o1[["I:A"]]$hitting_probs_from_WT))
+        expect_true("WT" %in% names(o1[["I:B"]]$hitting_probs_from_WT))
+        expect_true("WT" %in% names(o1[["I:C"]]$hitting_probs_from_WT))
+
         cat("\n ##### Doing 5 genes\n")
         ## And now, a 5 gene example
         rmhn <- random_evam(model = "MHN", ngenes = 5)
@@ -269,6 +289,7 @@ test_that("HyperHMM interventions and predicted genot calculations", {
         o1_C["B, C, E", ] <- 0
         o1_C["C, D, E", ] <- 0
         o1_C["A, B, C, D", ] <- 0
+    o1_C["A, B, C, E", ] <- 0
         o1_C["A, C, D, E", ] <- 0
         o1_C["B, C, D, E", ] <- 0
 
@@ -339,6 +360,11 @@ test_that("HyperHMM interventions and predicted genot calculations", {
         (pp_C <- pp_C[pp_C > 0])
 
         expect_equal(pp_C, o1[["I:C"]]$genot_freqs)
+
+        ## Explicit hitting-prob check for I:C (5-gene), as above
+        expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_C)),
+                     o1[["I:C"]]$hitting_probs_from_WT)
+        expect_true("WT" %in% names(o1[["I:C"]]$hitting_probs_from_WT))
 
         ## Kill E
         o1_E <- h1_tm
@@ -418,6 +444,11 @@ test_that("HyperHMM interventions and predicted genot calculations", {
         (pp_E <- pp_E[pp_E > 0])
 
         expect_equal(pp_E, o1[["I:E"]]$genot_freqs)
+
+        ## Explicit hitting-prob check for I:E (5-gene), as above
+        expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_E)),
+                     o1[["I:E"]]$hitting_probs_from_WT)
+        expect_true("WT" %in% names(o1[["I:E"]]$hitting_probs_from_WT))
     }
 })
 
