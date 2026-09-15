@@ -9,6 +9,7 @@
 ## library(Matrix)
 ## library(testthat)
 ## library(expm)
+## library(hyperhmm)
 
 ## intervention  pulls:
 ##   kill-gene-and-output-from-cpm.R pulls:
