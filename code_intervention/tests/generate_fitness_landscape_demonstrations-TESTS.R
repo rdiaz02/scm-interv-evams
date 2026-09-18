@@ -16,13 +16,78 @@ RhpcBLASctl::omp_set_num_threads(1)
 source("generate_all_fitness_landscape.R")
 setwd(pwd)
 
+## Set a new random seed and print it. Used in the tests instead of
+## set.seed(NULL), so that a failing run can be replayed: look for the
+## last "Seed used was" printed before the failure, and replace the
+## call to set_and_print_seed() there by set.seed(<that number>).
+set_and_print_seed <- function() {
+  ## First, set.seed(NULL): it re-seeds from the clock and the process
+  ## ID. Without it, if an earlier line did, say, set.seed(1), the
+  ## "random" seed drawn below would be the same number in every run.
+  set.seed(NULL)
+  ## sample.int gives a whole number between 1 and 1e9, a valid seed
+  ## (the largest integer R allows is about 2.1e9).
+  seed <- sample.int(1e9, 1)
+  set.seed(seed)
+  cat("\n Seed used was ", seed, "\n")
+  return(invisible(seed))
+}
+
 ### Generate fitness lanscapes using DAGs
+
+#### About random numbers and replaying a failing run with landscapes
+##
+## generate_n_f_landscape_requir() draws all its random numbers inside
+## mclapply(). Here we always call it with a first argument (n, the
+## number of landscapes) of 1. With a single item, mclapply() does not
+## fork: it just runs lapply() in the current R process. So all
+## random numbers are drawn in the current process, and the seed set
+## (and printed) by set_and_print_seed() is enough to replay a run.
+##
+## But if n were 2 or more, and more than one core were used,
+## mclapply() would fork one child process per landscape. With R's
+## default random number generator (Mersenne-Twister), each child
+## throws away the seed it inherited and re-seeds itself from the
+## clock and its process ID. So the landscapes would change from run
+## to run, whatever seed we set here.
+##
+## Using RNGkind("L'Ecuyer-CMRG") would make those forked runs
+## reproducible, but with care, because of a trap: forking does not advance
+## the random state of the parent process. So, if using
+## RNGkind("L'Ecuyer-CMRG"), two calls to mclapply() in a row, without
+## drawing any random number in the parent between them, give each child
+## the same random numbers as in the first call; e.g., two calls to
+## generate_n_f_landscape_requir() would return the same landscapes.
+## The non-advancing seed I think is not widely documented or known
+## but has been mentioned here
+## https://irudnyts.github.io//setting-a-seed-in-r-when-using-parallel-simulation/
+## (also in R-bloggers: https://www.r-bloggers.com/2018/07/%F0%9F%8C%B1-setting-a-seed-in-r-when-using-parallel-simulation/)
+## and is easy to check
+## Expect differences between the mc.preschedule TRUE/FALSE
+## set.seed(123, "L'Ecuyer")
+## x22b <- unlist(mclapply(1:20,
+##                         function(x) sum(runif(5)),
+##                         mc.preschedule = FALSE,
+##                         mc.cores = 3))
+## x23b <- unlist(mclapply(1:20,
+##                         function(x) sum(runif(5)),
+##                         mc.preschedule = FALSE,
+##                         mc.cores = 3))
+## x24b <- unlist(mclapply(1:20,
+##                         function(x) sum(runif(5)),
+##                         mc.preschedule = TRUE,
+##                         mc.cores = 3))
+## x25b <- unlist(mclapply(1:20,
+##                         function(x) sum(runif(5)),
+##                         mc.preschedule = TRUE,
+##                         mc.cores = 3))
+
 
 #### The transition rate matrices based on the DAG and the fitness landscape are identical
 ##   Also, the scaled trm = trm * a * c  (now, a * c is = 1)
 
 test_that("The transition rate matrices based on the DAG and the fitness landscape are identical", {
-  set.seed(NULL)
+  set_and_print_seed()
   ## run a few times if you want
   for (i in 1:10) {
     cat("############### Doing i = ", i, "\n")
@@ -101,3 +166,5 @@ test_that("The transition rate matrices based on the DAG and the fitness landsca
       check_frequencies_of_genotypes_in_trm(rr_HESBCN_2[[1]][["other"]][["HESBCN_trans_rate_mat"]], LETTERS[1:7])$genots_freq_from_check)
   }
 })
+
+set.seed(NULL)

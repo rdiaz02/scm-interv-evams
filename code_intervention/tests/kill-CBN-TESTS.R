@@ -70,7 +70,7 @@ setwd("../")
 source("intervention.R")
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 ## Extract a single named intervention from the full intervention output as a
 ## list(genot_freqs, hitting_probs_from_WT), for direct comparison with
@@ -351,7 +351,7 @@ DAG_7 <- data.frame(
 
 library(testthat)
 
-set.seed(NULL)
+set_and_print_seed()
 
 
 ### Utility functions
@@ -1000,3 +1000,5 @@ test_that("CBN DAG_5: ground-truth comparison for all gene kills", {
   expect_equal(get_interv(res, "I:H"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15), ]))
   expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), ]))
 })
+
+set.seed(NULL)

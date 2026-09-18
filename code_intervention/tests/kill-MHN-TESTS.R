@@ -54,7 +54,7 @@ setwd("../")
 source("intervention.R")
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 
 ### Hand-crafted 4-gene MHN theta matrix
@@ -156,3 +156,6 @@ test_that("MHN, another 4x4", {
   expect_equal(kill_gene(t1, "A"), t1[-1, -1])
   expect_equal(kill_gene(t1, "D"), t1[-4, -4])
 })
+
+
+set.seed(NULL)

@@ -20,7 +20,24 @@ setwd("../")
 source("rfitness_to_trm.R")
 setwd(pwd)
 
-set.seed(NULL)
+## Set a new random seed and print it. Used in the tests instead of
+## set.seed(NULL), so that a failing run can be replayed: look for the
+## last "Seed used was" printed before the failure, and replace the
+## call to set_and_print_seed() there by set.seed(<that number>).
+set_and_print_seed <- function() {
+  ## First, set.seed(NULL): it re-seeds from the clock and the process
+  ## ID. Without it, if an earlier line did, say, set.seed(1), the
+  ## "random" seed drawn below would be the same number in every run.
+  set.seed(NULL)
+  ## sample.int gives a whole number between 1 and 1e9, a valid seed
+  ## (the largest integer R allows is about 2.1e9).
+  seed <- sample.int(1e9, 1)
+  set.seed(seed)
+  cat("\n Seed used was ", seed, "\n")
+  return(invisible(seed))
+}
+
+set_and_print_seed()
 
 ## show all columns
 options(sparse.colnames = TRUE)
@@ -89,7 +106,7 @@ test_that("no_evam_genots_2_fgraph_and_trans_mat_rf works OK", {
       x/sum(x)
   }
 
-  set.seed(NULL)
+  set_and_print_seed()
   ## Tested with much larger i and nn up to 9.
   for (i in 1:20) {
     nn <- sample(3:6, size = 1)
@@ -160,7 +177,7 @@ test_that("no_evam_genots_2_fgraph_and_trans_mat_rf works with WT fitness differ
       x/sum(x)
   }
 
-  set.seed(NULL)
+  set_and_print_seed()
   ## Tested with much larger i(i.e 2000) and nn up to 9.
   for (i in 1:20) {
     nn <- sample(3:6, size = 1)

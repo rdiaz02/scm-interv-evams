@@ -32,6 +32,24 @@ library(parallel)
 
 ### Code
 
+## Set a new random seed and print it. Used in the tests instead of
+## set.seed(NULL), so that a failing run can be replayed: look for the
+## last "Seed used was" printed before the failure, and replace the
+## call to set_and_print_seed() there by set.seed(<that number>).
+set_and_print_seed <- function() {
+  ## First, set.seed(NULL): it re-seeds from the clock and the process
+  ## ID. Without it, if an earlier line did, say, set.seed(1), the
+  ## "random" seed drawn below would be the same number in every run.
+  set.seed(NULL)
+  ## sample.int gives a whole number between 1 and 1e9, a valid seed
+  ## (the largest integer R allows is about 2.1e9).
+  seed <- sample.int(1e9, 1)
+  set.seed(seed)
+  cat("\n Seed used was ", seed, "\n")
+  return(invisible(seed))
+}
+
+
 
 ## Drop entries with value <= 0 from a hitting-probs vector, but always
 ## keep WT. WT's hitting prob from itself is 0 in any non-absorbing chain

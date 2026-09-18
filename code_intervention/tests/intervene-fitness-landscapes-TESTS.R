@@ -42,7 +42,16 @@ source("intervention.R")
 source("generate_all_fitness_landscape.R")
 setwd(pwd)
 
-set.seed(NULL)
+
+## See long comment
+## "About random numbers and replaying a failing run with landscapes"
+## in generate_fitness_landscape_demonstrations-TESTS.R
+## for why we do not use L'Ecuyer here even when we call
+## functions that generate fitness landscapes.
+set_and_print_seed()
+
+
+
 
 ### Intervene on fitness landscape: example with only two viable genots
 
@@ -408,7 +417,7 @@ test_that("Killing in the fitness landscape, leaving only one genotype as viable
   stop_unless_intervention_identical_rm_0(hp_l, hp_p)
 
 
-  set.seed(NULL)
+  set_and_print_seed()
 })
 
 

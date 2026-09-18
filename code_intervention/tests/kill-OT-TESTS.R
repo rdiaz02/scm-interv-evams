@@ -16,7 +16,7 @@ setwd("../")
 source("intervention.R")
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 test_that("OT: compare predicted genotype freqs killing", {
   ## Kill with the two procedures for OT
@@ -41,7 +41,7 @@ test_that("OT: compare predicted genotype freqs killing", {
     return(res[[name]])
   }
 
-  set.seed(NULL)
+  set_and_print_seed()
   ot1 <- data.frame(
     From = c("Root", "Root", "C", "C", "C", "M", "M", "A", "E", "E", "X"),
     To   = c("C",  "M",  "A", "E", "B", "G", "D", "X", "H", "K", "I"),

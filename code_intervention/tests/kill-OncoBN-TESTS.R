@@ -73,7 +73,7 @@ setwd("../")
 source("intervention.R")
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 ## Extract a single named intervention from the full intervention output as a
 ## list(genot_freqs, hitting_probs_from_WT), for direct comparison with

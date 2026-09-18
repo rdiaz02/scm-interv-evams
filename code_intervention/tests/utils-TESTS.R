@@ -16,7 +16,7 @@ setwd("../")
 source("intervention.R")
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 
 test_that("genots_to_bin transforms genotypes into binary correctly",{

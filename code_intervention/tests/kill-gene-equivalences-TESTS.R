@@ -96,7 +96,12 @@ source("intervention.R")
 source("generate_all_fitness_landscape.R")
 setwd(pwd)
 
-set.seed(NULL)
+## See long comment
+## "About random numbers and replaying a failing run with landscapes"
+## in generate_fitness_landscape_demonstrations-TESTS.R
+## for why we do not use L'Ecuyer here even when we call
+## functions that generate fitness landscapes.
+set_and_print_seed()
 
 
 ### Utility functions
@@ -250,7 +255,7 @@ test_that("kill gene from which all depend", {
 
 ## Run and check a few times
 local({
-  set.seed(NULL)
+  set_and_print_seed()
   total_iters <- 10
   cat("Standard DAG intervention identical to setting parameters to 0")
   for (i in 1:total_iters) {
@@ -347,7 +352,7 @@ local({
 ### CBN and H-ESBCN: intervene by modifying the fitness landscape identical to DAG intervention
 
 local({
-  set.seed(NULL)
+  set_and_print_seed()
   ## Run a few times
   total_iters <- 10
   cat("CBN and H-ESBCN: intervene by modifying the fitness landscape identical to DAG intervention")
@@ -381,7 +386,7 @@ local({
 ## Remember: DO NOT USE THIS in general as limited to a few methods
 
 local({
-  set.seed(NULL)
+  set_and_print_seed()
   ## Run a few times
   total_iters <- 10
   cat("CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervened gene")
@@ -409,3 +414,6 @@ local({
     stop_unless_intervention_identical(i_rmhn, i_rm_trm_rmhn)
   }
 })
+
+
+set.seed(NULL)

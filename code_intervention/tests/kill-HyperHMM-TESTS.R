@@ -50,7 +50,7 @@ setwd("../")
 source("intervention.R")
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 test_that("HyperHMM, error if trying to use wrong kill_gene funct", {
   rmhn <- random_evam(model = "MHN", ngenes = 3)

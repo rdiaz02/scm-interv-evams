@@ -115,7 +115,7 @@ setwd("../")
 source("intervention.R")
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 ## Compare two named numeric vectors on their common names, with a numeric
 ## tolerance, ignoring attributes/order.

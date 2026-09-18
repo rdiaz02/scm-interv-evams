@@ -66,7 +66,7 @@ setwd("../")
 source("intervention.R")
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 ## Extract a single named intervention from the full intervention output as a
 ## list(genot_freqs, hitting_probs_from_WT), for direct comparison with
@@ -291,7 +291,7 @@ DAG_7 <- data.frame(
 
 library(testthat)
 
-set.seed(NULL)
+set_and_print_seed()
 
 
 #### Utility functions
@@ -795,3 +795,6 @@ test_that("HESBCN cascade OR/XOR: killing one OR/XOR-parent does NOT cascade to 
     expect_equal(get_interv(res, "I:D"), preds_from_model(m[c(1, 2, 3, 4), ]))
   }
 })
+
+
+set.seed(NULL)

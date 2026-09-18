@@ -31,7 +31,7 @@ setwd("../")
 source("intervention.R")
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 ### Examples of use
 ##  Though the tests provide many additional examples
@@ -368,7 +368,7 @@ test_that("Explaining the warning about unreachable destinations", {
     gg2cbn <- gg2(kill_gene_by_params_to_0(rcbn[[1]], "B", verbose = TRUE))
     gg2hes <- gg2(kill_gene_by_params_to_0(rhes[[2]], "B", verbose = TRUE))
     gg2ot <- gg2(kill_gene_by_params_to_0(rot[[1]], "B", verbose = TRUE))
-    set.seed(NULL)
+    set_and_print_seed()
   })
 })
 
@@ -397,7 +397,7 @@ test_that("Issue 1 is solved", {
   expect_error(random_evam(1, model =  "OncoBN"))
   expect_error(random_evam(1, model =  "OT"))
 
-  set.seed(NULL)
+  set_and_print_seed()
 
   #### 2-gene models, where we kill one gene
   ## CBN and H-ESBCN work just fine
@@ -455,7 +455,7 @@ test_that("Issue 1 is solved", {
     expect_equal(mhn1_1_pf, mhn1_2_pf)
 
     ## Nope, not a lucky thing
-    set.seed(NULL)
+    set_and_print_seed()
     for (i in 1:10) {
         the_kg <- ifelse(i %% 2, "A", "B")
         (random_MHN <- random_evam(2, model = "MHN")$MHN_theta)
@@ -524,7 +524,7 @@ test_that("Issue 1 is solved", {
     (seven_OncoBN <- kill_gene(random_7OncoBN, "A"))
     oo7 <- get_full_output(seven_OncoBN)
 
-    set.seed(NULL)
+    set_and_print_seed()
 
 })
 
@@ -547,7 +547,7 @@ test_that("Issue 1 is solved", {
 ## get_full_output, since that is never called directly.
 test_that("Issue 1 is solved, additional", {
   local({
-    set.seed(NULL)
+    set_and_print_seed()
     ## Structural kill reduces model dimensions; params-to-0 keeps structure.
     ## Filter > 0 before comparing to test equivalence of predictions.
     filter_preds <- function(x) list(

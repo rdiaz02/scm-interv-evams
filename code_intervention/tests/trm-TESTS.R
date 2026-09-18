@@ -82,7 +82,7 @@ setwd("../")
 source("intervention.R")   ## sources kill-gene-and-output-from-cpm.R -> trm.R
 setwd(pwd)
 
-set.seed(NULL)
+set_and_print_seed()
 
 
 ### Model 1: 1-gene absorbing chain WT -> A with rate r
