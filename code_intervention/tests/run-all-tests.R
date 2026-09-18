@@ -117,7 +117,7 @@ cat("#######################################\n")
 ##       kill-gene-equivalences-TESTS.R,
 ##       intervene-fitness-landscapes-TESTS.R,
 ##       miscellanea-and-former-issues-TESTS.R.
-##   - "No accessible genotypes": same.
+##   - "No acessible genotypes": same.
 ##   - "Model has 0 rows": in miscellanea-and-former-issues-TESTS.R under
 ##       "Issue 1 is solved", intentional.
 ##   - "Issue 1 is solved": my own warning() call used as a label/marker
