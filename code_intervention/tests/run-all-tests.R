@@ -35,9 +35,6 @@ source("../dependencies.R", echo = TRUE)
 
 
 options(intervention_every_gene_cores = parallel::detectCores())
-## For laptop
-if (system("hostname", intern = TRUE) == "Triturus")
-  intervention_every_gene_cores <- 4
 
 tests_files <- sort(dir(pattern = glob2rx("*-TESTS.R")))
 
