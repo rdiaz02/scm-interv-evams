@@ -112,7 +112,9 @@ intervene_cpm_every_gene <- function(cpm_output,
           tmp <- get_genotype_freqs_cpm(model_after_intervention, t = t)
     }
       return(list(genot_freqs = tmp$genot_freqs[tmp$genot_freqs > 0],
-                  hitting_probs_from_WT = filter_hp_keep_wt(tmp$hitting_probs_from_WT)))
+                  hitting_probs_from_WT = filter_hp_keep_wt(tmp$hitting_probs_from_WT),
+                  hitting_probs_from_WT_direct = filter_hp_keep_wt(tmp$hitting_probs_from_WT_direct),
+                  divergence_hitting_prob_calculation = tmp$divergence_hitting_prob_calculation))
   }, mc.cores = mc.cores)
   intervention_names <- c(NO_INTERV_STR, paste0("I:", interventions[-1]))
   out_list <- setNames(intervene_all_genes, intervention_names)
@@ -147,51 +149,57 @@ intervene_fitness_landscape_every_gene <- function(x,
                                                    custom_sampling_function = probs_uniform_sampling_custom,
                                                    mc.cores = getOption("intervention_every_gene_cores",
                                                                         detectCores())) {
-    NO_INTERV_STR <- "no_intervention"
-    genes <- colnames(x$fitness_landscape)[-ncol(x$fitness_landscape)]
+  NO_INTERV_STR <- "no_intervention"
+  genes <- colnames(x$fitness_landscape)[-ncol(x$fitness_landscape)]
 
-    out <- mclapply(genes, function(gene) {
-        intervened_fitness <-
-            kill_gene_fitness_landscape(x$fitness_landscape, gene)
-        intervened_trm_scaled <- fitness_landscape_2_scaled_trm(intervened_fitness, c = x$c)
-        ## If not valid TRM because there are no accesible genotypes
-        if (intervened_trm_scaled$no_accessible_genotypes) {
-            return(list(genot_freqs = c(WT = 1),
-                        hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        trm <- intervened_trm_scaled$trm_scaled
-        tmp_genot_freqs <- genots_from_trm(trm, t = t,
-                                           custom_sampling = custom_sampling,
-                                           custom_sampling_function = custom_sampling_function)
-        ## Embedded chain via competing exponentials (row-scale rows with
-        ## rowSums > 0; absorbing states keep all-zero rows for to_markovchain)
-        rs <- rowSums(trm)
-        embedded <- trm
-        embedded[rs > 0, ] <- trm[rs > 0, ] / rs[rs > 0]
-        tmp_hp <- hitting_probs_from_WT(embedded)
-        return(list(genot_freqs = tmp_genot_freqs[tmp_genot_freqs > 0],
-                    hitting_probs_from_WT = filter_hp_keep_wt(tmp_hp)))
-    }, mc.cores = mc.cores)
+  out <- mclapply(genes, function(gene) {
+    intervened_fitness <-
+      kill_gene_fitness_landscape(x$fitness_landscape, gene)
+    intervened_trm_scaled <- fitness_landscape_2_scaled_trm(intervened_fitness, c = x$c)
+    ## If not valid TRM because there are no accesible genotypes
+    if (intervened_trm_scaled$no_accessible_genotypes) {
+      return(list(genot_freqs = c(WT = 1),
+                  hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
+    }
+    trm <- intervened_trm_scaled$trm_scaled
+    tmp_genot_freqs <- genots_from_trm(trm, t = t,
+                                       custom_sampling = custom_sampling,
+                                       custom_sampling_function = custom_sampling_function)
+    ## Embedded chain via competing exponentials (row-scale rows with
+    ## rowSums > 0; absorbing states keep all-zero rows for to_markovchain)
+    rs <- rowSums(trm)
+    embedded <- trm
+    embedded[rs > 0, ] <- trm[rs > 0, ] / rs[rs > 0]
+    both <- hitting_probs_from_WT_both(embedded, context = paste0("fitness_landscape I:", gene))
+    return(list(genot_freqs = tmp_genot_freqs[tmp_genot_freqs > 0],
+                hitting_probs_from_WT = filter_hp_keep_wt(both$hp),
+                hitting_probs_from_WT_direct = filter_hp_keep_wt(both$hp_direct),
+                divergence_hitting_prob_calculation = both$divergence))
+  }, mc.cores = mc.cores)
 
-    ## Prepend no intervention
-    tmp_ni <- genots_from_trm(x$trm_scaled, t = t,
-                              custom_sampling = custom_sampling,
-                              custom_sampling_function = custom_sampling_function)
-    trm_ni <- x$trm_scaled
-    rs_ni <- rowSums(trm_ni)
-    embedded_ni <- trm_ni
-    embedded_ni[rs_ni > 0, ] <- trm_ni[rs_ni > 0, ] / rs_ni[rs_ni > 0]
-    hp_ni <- hitting_probs_from_WT(embedded_ni)
+  ## Prepend no intervention
+  tmp_ni <- genots_from_trm(x$trm_scaled, t = t,
+                            custom_sampling = custom_sampling,
+                            custom_sampling_function = custom_sampling_function)
+  trm_ni <- x$trm_scaled
+  rs_ni <- rowSums(trm_ni)
+  embedded_ni <- trm_ni
+  embedded_ni[rs_ni > 0, ] <- trm_ni[rs_ni > 0, ] / rs_ni[rs_ni > 0]
+  both_ni <- hitting_probs_from_WT_both(embedded_ni, context = "fitness_landscape no_intervention")
 
-    out <- c(list(list(genot_freqs = tmp_ni[tmp_ni > 0],
-                       hitting_probs_from_WT = filter_hp_keep_wt(hp_ni))),
-             out)
+  out <- c(list(list(genot_freqs = tmp_ni[tmp_ni > 0],
+                     hitting_probs_from_WT = filter_hp_keep_wt(both_ni$hp),
+                     hitting_probs_from_WT_direct = filter_hp_keep_wt(both_ni$hp_direct),
+                     divergence_hitting_prob_calculation = both_ni$divergence)),
+           out)
 
-    names(out)[1] <- NO_INTERV_STR
-    names(out)[-1] <- paste0("I:", genes)
+  names(out)[1] <- NO_INTERV_STR
+  names(out)[-1] <- paste0("I:", genes)
 
-    if (!is.na(filename)) saveRDS(out, filename)
-    return(out)
+  if (!is.na(filename)) saveRDS(out, filename)
+  return(out)
 }
 
 
@@ -257,27 +265,48 @@ intervene_cpm_trm_rm_every_gene <- function(cpm_output,
           tmp <- get_genotype_freqs_cpm(model, t = t)
           tmp_genot_freqs <- tmp$genot_freqs
           tmp_hp <- tmp$hitting_probs_from_WT
+          tmp_hpd <- tmp$hitting_probs_from_WT_direct
+          tmp_div <- tmp$divergence_hitting_prob_calculation
       } else {
           trm_after_intervention <- rm_genots_trm(cpm_output, gene, method)
           if (nrow(trm_after_intervention) > 1) {
               tmp_genot_freqs <-
                   genots_from_trm(trm_after_intervention, t = t)
-          } else { ## All genots killed
+              ## Compute embedded chain from Q matrix (negative diagonal,
+              ## rows sum to 0): zero out diagonal to get off-diagonal
+              ## rates, then row-normalize.
+              off_q <- trm_after_intervention
+              diag(off_q) <- 0
+              rs <- rowSums(off_q)
+              embedded <- off_q
+              embedded[rs > 0, ] <- off_q[rs > 0, ] / rs[rs > 0]
+              both <- hitting_probs_from_WT_both(embedded,
+                                                 context = paste0(method,
+                                                                  " trm_rm I:",
+                                                                  gene))
+              tmp_hp <- both$hp
+              tmp_hpd <- both$hp_direct
+              tmp_div <- both$divergence
+          } else { ## All genots killed: only WT survives.
               ## Must be a 0.
               stopifnot(as.vector(trm_after_intervention) == 0)
               tmp_genot_freqs <- c(WT = 1)
+
+              ## Hardcode WT = 1, to match the kill_gene path (the nrow ==
+              ## 0 branch of get_genotype_freqs_cpm). On the trivial
+              ## WT-only absorbing chain hitting_probs_from_WT_direct
+              ## returns 0 while markovchain returns 1, so computing them
+              ## here would both disagree with the kill_gene path AND
+              ## record a spurious divergence of 1.
+              tmp_hp <- c(WT = 1.0)
+              tmp_hpd <- c(WT = 1.0)
+              tmp_div <- 0.0
           }
-          ## Compute embedded chain from Q matrix (negative diagonal, rows sum to 0):
-          ## zero out diagonal to get off-diagonal rates, then row-normalize.
-          off_q <- trm_after_intervention
-          diag(off_q) <- 0
-          rs <- rowSums(off_q)
-          embedded <- off_q
-          embedded[rs > 0, ] <- off_q[rs > 0, ] / rs[rs > 0]
-          tmp_hp <- hitting_probs_from_WT(embedded)
       }
       return(list(genot_freqs = tmp_genot_freqs[tmp_genot_freqs > 0],
-                  hitting_probs_from_WT = filter_hp_keep_wt(tmp_hp)))
+                  hitting_probs_from_WT = filter_hp_keep_wt(tmp_hp),
+                  hitting_probs_from_WT_direct = filter_hp_keep_wt(tmp_hpd),
+                  divergence_hitting_prob_calculation = tmp_div))
   }, mc.cores = mc.cores)
   names(intervene_all_genes) <- interventions
   names(intervene_all_genes)[-1] <- paste0("I:", interventions[-1])

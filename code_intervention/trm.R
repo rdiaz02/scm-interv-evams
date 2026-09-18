@@ -489,5 +489,234 @@ hitting_probs_from_WT <- function(trans_mat) {
 }
 
 
+## Same output as hitting_probs_from_WT (named vector of hitting
+## probabilities WT), but computed directly and just for WT as the origin.
+## Used to check the output of markovchain:hittingProbabilities. Why? See
+## comments before function threshold_transition_matrix.
+
+hitting_probs_from_WT_direct <- function(trans_mat, absorb_tol = 1e-12) {
+
+  ## What this code does it avoid the per-target (destination) linear
+  ## solves that become singular whenever the chain has absorbing states
+  ## other than the target; this can happen for kill-gene HyperHMM chains,
+  ## which can have many absorbing genotypes. Our code avoids this, so it
+  ## doesn't produce "system is singular" messages and is a lot cheaper
+  ## (one solve on the transient block instead of one per target).
+
+  ## Method (fundamental matrix). Divide the states into absorbing (no
+  ## transition to a different state: off-diagonal row mass ~ 0) and
+  ## transient (the rest). With Q = P[transient, transient] and R =
+  ## P[transient, absorbing], the fundamental matrix N = (I - Q)^{-1} gives
+  ## the expected number of visits.
+
+  ## Then, starting from WT (which must be transient):
+
+  ##   - for a transient target j != WT:
+  ##                   P(ever reach j) = N[WT, j] / N[j, j];
+
+  ##   - for an absorbing target j:
+  ##                   P(reach j)  = (N %*% R)[WT, j];
+
+  ##   - for WT itself: the RETURN probability 1 - 1 / N[WT, WT]. This is
+  ##     the same as markovchain::hittingProbabilities, whose diagonal is
+  ##     the return probability, not a forced 0: it is 0 only when WT has
+  ##     no self-loop (e.g. no intervention), but killing puts probability
+  ##     mass on WT's diagonal, so WT can re-hit itself and the return
+  ##     probability equals that self-loop mass.
+  ##
+
+  ## States unreachable from WT get 0 automatically (N[WT, .] = 0 for
+  ## them). (I - Q) is nonsingular because every transient state reaches an
+  ## absorbing state with probability 1, so Q has spectral radius < 1.
+  ## absorb_tol: a state is treated as absorbing when its total probability
+  ## of moving to a different state is <= absorb_tol. This matters because
+  ## HyperHMM's matrices after killing can have transition probabilities
+  ## spanning a huge range (we have seen off-diagonal entries from ~1e-176
+  ## to ~1). A state with a tiny-but-positive probability of moving out is,
+  ## under the run-until-absorption (infinite time) semantics of
+  ## markovchain::hittingProbabilities, a transient state (it escapes with
+  ## probability 1). Thus, the WT hitting probabilities can change a lot
+  ## (e.g., ~0.15 in one 9-gene example) depending on where we put the
+  ## cutoff.
+
+  ## What we do here is use a default of 1e-12, that considers any
+  ## probability of moving out (of escaping) with (total) probability less
+  ## than 1e-12 as zero (i.e., it does not move out). This also keeps (I -
+  ## Q) well enough conditioned that this can be solved. See
+  ## tests/hitting-probs-direct-and-drop-unreachable-TESTS.R (the MC ground
+  ## truth uses the same cutoff).
+
+  ## Note: this absorb_tol is not the same as the thresholding in function
+  ## threshold_transition_matrix: in threshold_transition_matrix we set
+  ## each single entry below 1e-12 to 0; here, we treat a genotype as
+  ## absorbing if its whole row adds up to ≤ 1e-12 (i.e., we consider can't
+  ## move away from this genotype unless the total movement, over all
+  ## possible destination genotypes, is more than 1e-12 of probability
+  ## mass).
+
+  m <- as.matrix(trans_mat)
+  n <- nrow(m)
+  states <- rownames(m)
+  wt <- which(states == "WT")
+  if (length(wt) != 1) stop("WT not found exactly once in rownames(trans_mat)")
+
+  result <- setNames(rep(0.0, n), states)
+
+  ## Absorbing = no (non-negligible) probability of moving to a different
+  ## state.
+  off_diag_out <- rowSums(m) - diag(m)
+  absorbing <- which(off_diag_out <= absorb_tol)
+  transient <- setdiff(seq_len(n), absorbing)
+
+  ## If WT itself is absorbing, nothing else is reachable: from WT you
+  ## never move, so every other state has hitting probability 0, and WT
+  ## itself is hit with probability 1 (recall you start there). WT = 1
+  ## matches markovchain::hittingProbabilities convention for an absorbing
+  ## state and the "everything killed -> only WT" hardcoded paths in
+  ## get_genotype_freqs_cpm / the intervention functions.
+
+  if (wt %in% absorbing) {
+    result[wt] <- 1.0
+    return(result)
+  }
+
+  Q <- m[transient, transient, drop = FALSE]
+  N <- solve(diag(nrow(Q)) - Q)
+  wt_t <- match(wt, transient) ## index of WT within the transient block
+
+  ## Transient targets (j != WT): N[WT, j] / N[j, j].
+  diagN <- diag(N)
+  hp_trans <- N[wt_t, ] / diagN
+  result[transient] <- hp_trans
+  ## WT itself: return probability (0 if WT has no self-loop, else the
+  ## self-loop mass); matches markovchain::hittingProbabilities' diagonal.
+  result[wt] <- 1.0 - 1.0 / N[wt_t, wt_t]
+
+  ## Absorbing targets: absorption probabilities (N %*% R)[WT, ].
+  if (length(absorbing) > 0) {
+    R <- m[transient, absorbing, drop = FALSE]
+    absorb_probs <- N[wt_t, ] %*% R
+    result[absorbing] <- as.vector(absorb_probs)
+  }
+
+  return(result)
+}
+
+
+## Set to zero the off-diagonal transition probabilities below `tol` and
+## renormalize each row to sum to 1.
+
+## Why? Fitted models --- HyperHMM especially --- can produce a large
+## fraction of transition probabilities that are just numerical noise (in
+## examples we checked, ~1/3 of a HyperHMM fit's entries are < 1e-12, and
+## can be as small as ~1e-320). The model cannot represent an exact zero,
+## so "never happens" can become ~1e-130. Those tiny entries can break
+## markovchain::hittingProbabilities; see
+## https://github.com/spedygiorgio/markovchain/issues/233.
+##
+##   - Before the fix of 2026-08-12, they made the per-target linear
+##     solves ill-conditioned. markovchain returned negative
+##     "probabilities", accompanied by a "system is singular" message
+##     from Armadillo for every target.
+##
+##   - After the fix of 2026-08-12, things can still be very wrong, and
+##     quietly (reported 2026-09-17)
+
+##    - A further fix (branch fix/hittingprobs, commit db73e68, not on CRAN
+##     as of 2026-09-18) gives, on our 9-gene example, the exact answer to
+##     ~1e-14 with and without thresholding.
+
+##  For now, we keep thresholding. Suppose a genotype (X) that could
+##  transition with prob. = 1 - (1e-13) to a genotype with the killed gene,
+##  and with prob. 1e-13 to another genotype (Y). If we do not threshold,
+##  after killing, the hitting probability of X is affected by what other
+##  tiny entries might have been left (e.g., genotypes that transition to
+##  via tiny probs. to something else, instead of to X). Moreover, suppose
+##  the only way to get to Y were via X; if we threshold, Y's hitting
+##  probability will be 0, but if we don't, it won't (and it might actually
+##  be relatively large if X's own hitting prob. is large); this behavior,
+##  where X and Y can end up with the same hitting prob. is not sensible
+##  when the transition prob. from X to Y is 1e-12 or less, given our
+##  sample sizes.
+
+##  And thresholding has another virtue: all three versions of markovchain
+##  since we reported the bug (right before the report, the 2026-08-12 fix,
+##  and the current branch fix/hittingprobs as of 2026-09-18) behave the
+##  same and also the same as our own code for hitting probs and with
+##  Monte-Carlo results. Given the state of flux of markovchain, and given
+##  that the fix as of 2026-09-18 is not yet in CRAN, this seems the
+##  sensible choice. (Other options, such as thresholding for our code but
+##  not for markovchain, and using the latest markovchain version, put too
+##  large a burden on users and developers, and might give alarming
+##  messages of a large `divergence` from `hitting_probs_from_WT_both` that
+##  have no practical relevance)
+
+## VERY IMPORTANT: this *ONLY THRESHOLDS* tiny transition probabilities to
+## zero. It does *NOT* drop or otherwise remove genotypes (e.g. killed
+## genotypes with all-zero rows are left in place, just as they are) ---
+## dropping is a separate issue (see function
+## kill_gene_HyperHMM_drop_unreachable).
+
+threshold_transition_matrix <- function(m, tol = 1e-12) {
+  tm <- as.matrix(m)
+  offdiag <- row(tm) != col(tm)
+  tm[offdiag & (tm < tol)] <- 0
+  rs <- rowSums(tm)
+  pos <- rs > 0
+  tm[pos, ] <- tm[pos, ] / rs[pos]
+  return(tm)
+}
+
+
+## Compute the WT hitting probabilities both ways: with markovchain package
+## (hitting_probs_from_WT) and our code above for the direct method
+## (hitting_probs_from_WT_direct). Return both, with markovchain's result
+## as the canonical, and record their disagreement (and give warning if
+## large). See details is hitting-probs-direct-and-drop-unreachable-TESTS.R
+##
+## 'context' is a short string (e.g. the method, or method and gene) shown
+## in the warning to help locate the computation with the problem.
+##
+## However, after using the thresholding on HyperHMM results (see function
+## threshold_transition_matrix) we should not see any serious diveregences.
+
+hitting_probs_from_WT_both <- function(trans_mat,
+                                       context = "", tol = 1e-6) {
+
+  ## The markovchain result is kept as the canonical value (hp) for now;
+  ## the direct result (hp_direct) is also returned. Their disagreement is
+  ## always recorded as divergence = max(abs(hp - hp_direct)) over the
+  ## shared genotypes --- even when it is below tol. A warning (naming the
+  ## worst genotypes) is emitted only when divergence > tol. We compare on
+  ## max(abs(.)), not all.equal: all.equal averages the (relative)
+  ## differences, so a localized spike, which is how the markovchain bug
+  ## was found, could be diluted. max(abs(.)) catches the worst genotype
+  ## directly and is the same quantity we return in the results.
+  ##
+  ## markovchain's own "system is computationally singular" warnings are no
+  ## longer suppressed here: our explicit divergence is the difference
+  ## between the two methods; this can catch wrong markovchain answers even
+  ## when they are returned silently, but we want to see the warnings, if
+  ## they appear. And it seems that the actual message could differ between
+  ## R/Armadillo/BLAS versions.
+
+  ##  hp <- suppressWarnings(hitting_probs_from_WT(trans_mat))
+  hp <- hitting_probs_from_WT(trans_mat)
+  hp_direct <- hitting_probs_from_WT_direct(trans_mat)
+  nm <- names(hp)
+  absdiff <- abs(hp[nm] - hp_direct[nm])
+  divergence <- max(absdiff)
+  if (is.finite(divergence) && (divergence > tol)) {
+    worst <- nm[order(absdiff, decreasing = TRUE)]
+    worst <- worst[seq_len(min(5, length(worst)))]
+    warning("hitting_probs divergence (markovchain vs direct)",
+            if (nzchar(context)) paste0(" [", context, "]") else "",
+            ": max abs diff = ", format(divergence),
+            "; worst genotypes: ", paste(worst, collapse = ", "))
+  }
+  return(list(hp = hp, hp_direct = hp_direct, divergence = divergence))
+}
+
+
 library(codetools)
 checkUsageEnv(env = .GlobalEnv)

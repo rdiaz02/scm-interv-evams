@@ -154,7 +154,12 @@ kill_gene <- function(x, gene, verbose = FALSE) {
   ## The first condition is an addition, a lot after the rest of the code
   ## was in place
   if (isTRUE(attributes(x)$method_output == "HyperHMM_trans_mat")) {
-      kill_gene_HyperHMM(x, gene)
+    ## Drop the killed (thus, unreachable) genotypes rather than carrying
+    ## them: smaller matrix, faster hitting-prob solves, and it makes no
+    ## sense to keep genotypes that are, by definition, killed.
+    ## This is lossless:  see kill_gene_HyperHMM_drop_unreachable and
+    ## its tests.
+    kill_gene_HyperHMM_drop_unreachable(x, gene)
   } else if (is.matrix(x) &&
              (all(colnames(x) == rownames(x))) &&
       is.numeric(x)) {
@@ -410,9 +415,11 @@ get_full_output <- function(x, epos = 0) {
 ## Except if you pass a t != NA, and use CBN/HESBCN/MHN, all the work
 ## is really done by get_full_output.
 get_genotype_freqs_cpm <- function(model, t = NA) {
-    if (nrow(model) == 0) {
-        return(list(genot_freqs = c(WT = 1),
-                    hitting_probs_from_WT = c(WT = 1.0)))
+  if (nrow(model) == 0) {
+    return(list(genot_freqs = c(WT = 1),
+                hitting_probs_from_WT = c(WT = 1.0),
+                hitting_probs_from_WT_direct = c(WT = 1.0),
+                divergence_hitting_prob_calculation = 0.0))
     }
 
     ## Find out the method.
@@ -554,7 +561,60 @@ kill_gene_HyperHMM <- function(x, gene) {
     attr(x1, "num_prob.set") <- attributes(x)$num_prob.set
     attr(x1, "num_features") <- attributes(x)$num_features
 
+
+## Variant of kill_gene_HyperHMM that drops the killed genotypes (those
+## containing the killed gene) from the matrix.
+kill_gene_HyperHMM_drop_unreachable <- function(x, gene) {
+
+  ## Why? After kill_gene_HyperHMM, the killed genotypes have an all-zero
+  ## row (their outgoing transitions were zeroed: they emit nothing) and an
+  ## all-zero column (the transitions into them were zeroed, their mass was
+  ## put on the diagonal of the surviving genotypes; nothing reaches the
+  ## killed). They are therefore disconnected absorbing states, unreachable
+  ## from WT. The rest of the matrix, that with connected states, is a
+  ## proper stochastic matrix (each row still sums to 1 and points only at
+  ## surviving genotypes), so removing the killed rows/columns gives
+  ## exactly the transition matrix restricted to the states reachable from
+  ## WT. This is lossless: the dropped genotypes have predicted frequency 0
+  ## and hitting-probability-from-WT 0, so downstream genotype frequencies
+  ## and WT hitting probabilities are unchanged (verified against
+  ## kill_gene_HyperHMM in the tests). The benefit is a smaller matrix
+  ## (e.g. 512 -> 256 for a 9-gene kill), which speeds up the
+  ## hitting-probability computation a lot. It also halves the "system is
+  ## singular" messages that markovchain::hittingProbabilities emitted
+  ## before the fix of 2026-08-12. But it halves them only because it emits
+  ## one message per target state, so half the states, half the messages.
+  ## Dropping does not really remove the cause of those messages, which is
+  ## the tiny transition probabilities, not the local maxima. Thresholding
+  ## is what removes them.
+
+  ## num_features and num_prob.set are kept unchanged on purpose: the
+  ## remaining matrix block spans a subset of the same genotype labels, and
+  ## probs_from_HyperHMM's step/weight arithmetic is identical on it (the
+  ## dropped genotypes contributed 0). See the tests.
+
+  ## Recall num_features and num_prob.set are not properties of the
+  ## transition matrix. They are the number of mutation-count steps and the
+  ## weights of those steps. We keep these unchanged in the intervention
+  ## See the algorithm in the paper:
+  ## to obtain the predicted genotype frequencies we use
+  ## \(\hat{\mathbf{f}}_{-g} = \sum_{v=0}^{v=\text{number of loci}}\hat{\mathbf{f}}^v_{-g}\  P(V = v)\). \(P(V=v) \),
+  ## where "number of loci" is num_features
+  ## and num_prob.set are each of the P(V = v)
+
+  x1 <- kill_gene_HyperHMM(x, gene)
+  ## Killed genotypes are exactly the all-zero rows (kill zeroed both their
+  ## row and their column); every surviving genotype's row still sums to 1.
+  killed <- which(rowSums(x1) <= sqrt(.Machine$double.eps))
+  if (length(killed) == 0) {
     return(x1)
+  }
+  keep <- setdiff(seq_len(nrow(x1)), killed)
+  x2 <- x1[keep, keep, drop = FALSE]
+  attr(x2, "method_output") <- "HyperHMM_trans_mat"
+  attr(x2, "num_prob.set") <- attributes(x)$num_prob.set
+  attr(x2, "num_features") <- attributes(x)$num_features
+  return(x2)
 }
 
 
