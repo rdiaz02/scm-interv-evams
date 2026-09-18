@@ -35,6 +35,14 @@ source("../dependencies.R", echo = TRUE)
 
 
 options(intervention_every_gene_cores = parallel::detectCores())
+## For my laptop (Triturus), use only 4 cores. This must set the option
+## (not a variable): the code reads it with
+## getOption("intervention_every_gene_cores").
+## Sys.info() is base R and, unlike system("hostname"), does not need
+## the hostname program to exist (it might not, e.g., in a minimal
+## Docker image).
+if (Sys.info()[["nodename"]] == "Triturus")
+  options(intervention_every_gene_cores = 4)
 
 tests_files <- sort(dir(pattern = glob2rx("*-TESTS.R")))
 
