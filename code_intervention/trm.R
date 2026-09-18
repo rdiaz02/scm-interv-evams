@@ -1,17 +1,17 @@
 ## Copyright 2022 Ramon Diaz-Uriarte, Íñigo Ríos Arroyo
 
-## This program is free software: you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License (AGPLv3.0) as published by
-## the Free Software Foundation, either version 3 of the License, or (at your
-## option) any later version.
+## This program is free software: you can redistribute it and/or modify it
+## under the terms of the GNU Affero General Public License (AGPLv3.0) as
+## published by the Free Software Foundation, either version 3 of the
+## License, or (at your option) any later version.
 
 ## This program is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Affero General Public License for more details.
 
-## You should have received a copy of the GNU Affero General Public License along
-## with this program.  If not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 ### What this is
@@ -106,7 +106,9 @@ get_scaled_trm_adaptive <- function(fit_land, c = NA) {
   ## "Molecular evolution over the mutational landscape", Evolution.
   ## transition rate = s_i * scaling term
 
-  ## rand_target_mean_rate <- rgamma(1, shape = 0.8, rate = 0.1) ## runif(1, .1, 100)
+  ## rand_target_mean_rate <- rgamma(1, shape = 0.8, rate = 0.1)
+  ## runif(1, .1, 100)
+
   ## log-uniform in 0.1, 100
   ## This interval is way too large. But we want to know how things behave
   ## We will decrease it later.
@@ -154,52 +156,52 @@ check_frequencies_of_genotypes_in_trm <- function(trm,
                                                   min_average_num_muts = 2,
                                                   custom_sampling = FALSE,
                                                   custom_sampling_function = probs_uniform_sampling_custom) {
-    if (all(is.na(trm))) {
-        return(list(test_OK = NA,
-                    min_gene_freq = NA,
-                    max_gene_freq = NA,
-                    freq_WT = NA,
-                    genots_at_least_01 = NA,
-                    average_num_muts = NA,
-                    average_prop_diff_trm_1_2 = NA
-                    ))
-    }
+  if (all(is.na(trm))) {
+    return(list(test_OK = NA,
+                min_gene_freq = NA,
+                max_gene_freq = NA,
+                freq_WT = NA,
+                genots_at_least_01 = NA,
+                average_num_muts = NA,
+                average_prop_diff_trm_1_2 = NA
+                ))
+  }
 
-    if (!custom_sampling) {
-        genots_freq <- evamtools:::probs_from_trm(trm)
-    } else {
-        genots_freq <- custom_sampling_function(trm)
-    }
+  if (!custom_sampling) {
+    genots_freq <- evamtools:::probs_from_trm(trm)
+  } else {
+    genots_freq <- custom_sampling_function(trm)
+  }
 
-    genots_freq_no_WT <- genots_freq[-which(names(genots_freq) == "WT")]
-    genes_freq <- vapply(genes, function(gene){
-        sum(genots_freq_no_WT[grep(gene, names(genots_freq_no_WT), fixed = TRUE)])
-    }, FUN.VALUE = numeric(1))
-    less_than_min_freq <- any(genes_freq < min_gene_freq)
-    more_than_max_freq <- any(genes_freq > max_gene_freq)
+  genots_freq_no_WT <- genots_freq[-which(names(genots_freq) == "WT")]
+  genes_freq <- vapply(genes, function(gene){
+    sum(genots_freq_no_WT[grep(gene, names(genots_freq_no_WT), fixed = TRUE)])
+  }, FUN.VALUE = numeric(1))
+  less_than_min_freq <- any(genes_freq < min_gene_freq)
+  more_than_max_freq <- any(genes_freq > max_gene_freq)
 
-    freq_WT <- genots_freq["WT"]
-    WT_less_than_min <- (freq_WT < min_WT_freq)
-    WT_more_than_max <- (freq_WT > max_WT_freq)
+  freq_WT <- genots_freq["WT"]
+  WT_less_than_min <- (freq_WT < min_WT_freq)
+  WT_more_than_max <- (freq_WT > max_WT_freq)
 
-    no_num_genots_at_least_01 <-
-        (sum(genots_freq > 0.01) < min_genots_at_least_01)
+  no_num_genots_at_least_01 <-
+    (sum(genots_freq > 0.01) < min_genots_at_least_01)
 
-    num_muts <- stringi::stri_count_fixed(names(genots_freq_no_WT), ",") + 1
-    average_num_muts <- as.vector(num_muts %*% genots_freq_no_WT)
-    no_min_average_num_muts <- (average_num_muts < min_average_num_muts)
+  num_muts <- stringi::stri_count_fixed(names(genots_freq_no_WT), ",") + 1
+  average_num_muts <- as.vector(num_muts %*% genots_freq_no_WT)
+  no_min_average_num_muts <- (average_num_muts < min_average_num_muts)
 
 
-    ## This compares the change in frequency of genotypes if all the sample
-    ## taken   at exactly time 1 vs. all at exactly time 2. If we are
-    ## already in the   limiting distribution, there will be little
-    ## change. This is just   descriptive for now, we  aren't testing
-    ## on it.  abs on the freqs. because for tiny values can return negative.
+  ## This compares the change in frequency of genotypes if all the sample
+  ## taken   at exactly time 1 vs. all at exactly time 2. If we are
+  ## already in the   limiting distribution, there will be little
+  ## change. This is just   descriptive for now, we  aren't testing
+  ## on it.  abs on the freqs. because for tiny values can return negative.
 
-    p1 <- try(genots_at_t_from_trm(trm, 1))
-    p2 <- try(genots_at_t_from_trm(trm, 2))
-    if (inherits(p1, "try-error") || inherits(p2, "try-error"))
-    average_prop_diff_trm_1_2 <- NA
+  p1 <- try(genots_at_t_from_trm(trm, 1))
+  p2 <- try(genots_at_t_from_trm(trm, 2))
+  if (inherits(p1, "try-error") || inherits(p2, "try-error"))
+      average_prop_diff_trm_1_2 <- NA
   else
     average_prop_diff_trm_1_2 <- sum(abs(abs(p1) - abs(p2)))/2
 
@@ -265,8 +267,8 @@ genots_at_t_from_trm <- function(trm, t) {
       ## This attributes hack allows me to carry through
       ## the message. Warnings not very useful when doing thousands
       ## and using mclapply
-      attr(out, "all_equal_difference") <- list(t = t,
-                                                all_equal_message = all.equal(sum(out), 1.0))
+    attr(out, "all_equal_difference") <- list(t = t,
+                                              all_equal_message = all.equal(sum( out), 1.0))
   }
   out
 }
@@ -380,71 +382,71 @@ fitness_landscape_2_scaled_trm <- function(x, c) {
 probs_uniform_sampling_custom <- function(trm,
                                           times = seq(from = 0, to = 5,
                                                       length.out = 101)) {
-    ## Does not preserve the error attributes
-    ## pm <- vapply(times,
-    ##              function(x) genots_at_t_from_trm(trm, x),
-    ##              rep(0.0, nrow(trm))
-    ##              )
-    pm2 <- lapply(times, function(x) genots_at_t_from_trm(trm, x))
-    pm <- do.call(cbind, pm2)
-    p <- rowMeans(pm)
+  ## Does not preserve the error attributes
+  ## pm <- vapply(times,
+  ##              function(x) genots_at_t_from_trm(trm, x),
+  ##              rep(0.0, nrow(trm))
+  ##              )
+  pm2 <- lapply(times, function(x) genots_at_t_from_trm(trm, x))
+  pm <- do.call(cbind, pm2)
+  p <- rowMeans(pm)
 
-    ## Check if at any time we had a discrepancy with 1.0
-    which_err_attr <- which(unlist(lapply(pm2, function(x) !(is.null(attr(x, "all_equal_difference"))))))
-    if (length(which_err_attr)) {
-        all_err_attr <- lapply(pm2[which_err_attr], function(x) attr(x, "all_equal_difference"))
+  ## Check if at any time we had a discrepancy with 1.0
+  which_err_attr <- which(unlist(lapply(pm2, function(x) !(is.null(attr(x, "all_equal_difference"))))))
+  if (length(which_err_attr)) {
+    all_err_attr <- lapply(pm2[which_err_attr], function(x) attr(x, "all_equal_difference"))
 
-    }
+  }
 
-    ## Could this fail sometimes when it should not?
-    ## stopifnot(isTRUE(all.equal(sum(p), 1)))
+  ## Could this fail sometimes when it should not?
+  ## stopifnot(isTRUE(all.equal(sum(p), 1)))
 
-    if (!isTRUE(all.equal(sum(p), 1.0))) {
-      ## Both warning and message, to simplify detecting it
-      ## when using mclapply
-      message("WARNING_all_equal_from_probs_uniform_sampling_custom.",
-              " Difference = ", all.equal(sum(p), 1.0))
-      warning("WARNING_all_equal_from_probs_uniform_sampling_custom.",
-              " Difference = ", all.equal(sum(p), 1.0))
-      sum_p_not_1 <- TRUE
-    } else {
-      sum_p_not_1 <- FALSE
-    }
+  if (!isTRUE(all.equal(sum(p), 1.0))) {
+    ## Both warning and message, to simplify detecting it
+    ## when using mclapply
+    message("WARNING_all_equal_from_probs_uniform_sampling_custom.",
+            " Difference = ", all.equal(sum(p), 1.0))
+    warning("WARNING_all_equal_from_probs_uniform_sampling_custom.",
+            " Difference = ", all.equal(sum(p), 1.0))
+    sum_p_not_1 <- TRUE
+  } else {
+    sum_p_not_1 <- FALSE
+  }
 
-    ## Always return all genotypes, for consistency with probs_from_trm
-    ## From probs_from_trm
-    gene_names <- evamtools:::evam_string_sort(
-      setdiff(unique(unlist(strsplit(colnames(trm),
-                                     split = ", "))),
-              "WT"))
-    number_genes <- length(gene_names)
-    num_genots <- 2^number_genes
+  ## Always return all genotypes, for consistency with probs_from_trm
+  ## From probs_from_trm
+  gene_names <- evamtools:::evam_string_sort(
+    setdiff(unique(unlist(strsplit(colnames(trm),
+                                   split = ", "))),
+            "WT"))
+  number_genes <- length(gene_names)
+  num_genots <- 2^number_genes
 
-    if (length(p) == num_genots) {
-      if (length(which_err_attr))  attr(p, "all_err_attr") <- all_err_attr
-      if (sum_p_not_1) attr(p, "sum_p_not_1") <- TRUE
-      return(p)
-    }
-
-    ## These are two procedures of doing the same.
-    ## I was once bitten by a similar issue when dealing with HyperTraPS
-    ## So this is a paranoid procedure. rm one of the procedures eventually
-    ## Procedure 1
-    allGts <- evamtools:::genes_2_genotypes_standard_order(gene_names)
-    p_all <- rep(0.0, length = length(allGts))
-    names(p_all) <- allGts
-    ## Next line should preclude any possible errors
-    if (!(all(names(p) %in% allGts))) stop("mismatch in gene names")
-    p_all[names(p)] <- p
-    ## return(p_all)
-
-    ## Procedure 2. Probably slightly slower?
-    p <- evamtools:::reorder_to_standard_order(p)
-    p[is.na(p)] <- 0
-    stopifnot(identical(p, p_all))
+  if (length(p) == num_genots) {
     if (length(which_err_attr))  attr(p, "all_err_attr") <- all_err_attr
     if (sum_p_not_1) attr(p, "sum_p_not_1") <- TRUE
     return(p)
+  }
+
+  ## These are two procedures of doing the same.
+  ## I was once bitten by a similar issue when dealing with HyperTraPS
+  ## So this is a paranoid procedure. rm one of the procedures eventually
+  ## Procedure 1
+  allGts <- evamtools:::genes_2_genotypes_standard_order(gene_names)
+  p_all <- rep(0.0, length = length(allGts))
+  names(p_all) <- allGts
+  ## Next line should preclude any possible errors
+  if (!(all(names(p) %in% allGts))) stop("mismatch in gene names")
+  p_all[names(p)] <- p
+  ## return(p_all)
+
+  ## Procedure 2. Probably slightly slower?
+  p <- evamtools:::reorder_to_standard_order(p)
+  p[is.na(p)] <- 0
+  stopifnot(identical(p, p_all))
+  if (length(which_err_attr))  attr(p, "all_err_attr") <- all_err_attr
+  if (sum_p_not_1) attr(p, "sum_p_not_1") <- TRUE
+  return(p)
 }
 
 
@@ -471,14 +473,11 @@ to_markovchain <- function(x) {
 }
 
 
-## Transition probability matrix (embedded chain: rows sum to 1 for transient
-## states, 0 for absorbing states — to_markovchain adds the self-loop) ->
-## named vector of hitting probabilities from WT, using the
-## first-passage convention: h(WT, WT) = 0.
+## Transition probability matrix -> named vector of hitting probabilities from WT
 ## WT is located by name, not by position, since CPM trans_mats may not have
 ## WT as the first row.
 hitting_probs_from_WT <- function(trans_mat) {
-  mc <- to_markovchain(trans_mat)
+  mc <- to_markovchain(trans_mat) ## conform to markovchains requirem.
   hp <- hittingProbabilities(mc)
   wt_row <- which(rownames(trans_mat) == "WT")
   if (length(wt_row) != 1) stop("WT not found exactly once in rownames(trans_mat)")

@@ -66,9 +66,9 @@ intervene_cpm_every_gene <- function(cpm_output,
                                      verbose = FALSE,
                                      mc.cores = getOption("intervention_every_gene_cores",
                                                           detectCores())) {
-    if (length(method) != 1) stop("length(method) != 1")
-    method <- match.arg(method)
-    if ((method == "HyperHMM")  &&
+  if (length(method) != 1) stop("length(method) != 1")
+  method <- match.arg(method)
+  if ((method == "HyperHMM")  &&
         (deparse(substitute(kill_gene_funct)) != "kill_gene"))
       stop("HyperHMM can only use 'kill_gene' for kill_gene_funct")
   if (method == "MHN") {
@@ -216,13 +216,13 @@ rm_genots_trm <- function(x, gene, method) {
 
   if (length(rm_rown) != length(rm_coln))
       stop("length(rm_rown) != length(rm_coln)")
-  if(length(rm_rown) == 0) {
-      warning("No genotypes to remove?")
-      trm2 <- trm
+  if (length(rm_rown) == 0) {
+    warning("No genotypes to remove?")
+    trm2 <- trm
   } else {
-      ## Should always be square
-      ## If it ends up with 1 row and 1 column, and just a 0, it means only WT
-      trm2 <- trm[-rm_rown, -rm_coln, drop = FALSE]
+    ## Should always be square
+    ## If it ends up with 1 row and 1 column, and just a 0, it means only WT
+    trm2 <- trm[-rm_rown, -rm_coln, drop = FALSE]
   }
   return(trm2)
 }
@@ -241,11 +241,11 @@ intervene_cpm_trm_rm_every_gene <- function(cpm_output,
                                             filename = NA,
                                             mc.cores = getOption("intervention_every_gene_cores",
                                                                   detectCores())) {
-    if (length(method) != 1) stop("length(method) != 1")
-    method <- match.arg(method)
-    item <- ifelse(method == "MHN", "theta", "model")
-    model <- cpm_output[[paste0(method, "_", item)]]
-    if (length(model) == 0)
+  if (length(method) != 1) stop("length(method) != 1")
+  method <- match.arg(method)
+  item <- ifelse(method == "MHN", "theta", "model")
+  model <- cpm_output[[paste0(method, "_", item)]]
+  if (length(model) == 0)
     stop("Input contains no CPM with requested method")
 
   ## Get all the gene names

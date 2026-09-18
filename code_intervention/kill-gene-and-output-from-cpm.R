@@ -1,17 +1,17 @@
 ## Copyright 2022 Ramon Diaz-Uriarte
 
-## This program is free software: you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License (AGPLv3.0) as published by
-## the Free Software Foundation, either version 3 of the License, or (at your
-## option) any later version.
+## This program is free software: you can redistribute it and/or modify it
+## under the terms of the GNU Affero General Public License (AGPLv3.0) as
+## published by the Free Software Foundation, either version 3 of the
+## License, or (at your option) any later version.
 
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Affero General Public License for more details.
+## This program is distributed in the hope that it will be useful, but
+## WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+## General Public License for more details.
 
-## You should have received a copy of the GNU Affero General Public License along
-## with this program.  If not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 ### What this code does:
@@ -26,9 +26,9 @@
 ##    We also modify directly a fitness landscape by making
 ##    all genotypes with a given gene lethal.
 
-## B. For a CPM model (original or modified after killing) of types MHN, CBN,
-##   HESBCN, obtain the transition rates and, then, the predicted frequencies
-##   of genotypes  at any arbitrary time.
+## B. For a CPM model (original or modified after killing) of types MHN,
+##   CBN, HESBCN, obtain the transition rates and, then, the predicted
+##   frequencies of genotypes at any arbitrary time.
 ##   For OT and OncoBN, there is no way to sample at
 ##    arbitrary times, so we return the predicted genot. freq. in
 ##    a "standard sample".
@@ -70,7 +70,8 @@ ev2_dist_oncotree_output_2_named_genotypes <- function(odt) {
   ## is a column called Root, unlike OncoBN
   gpnroot <- which(colnames(odt) == "Root")
   gpnfr <- which(colnames(odt) == "Prob")
-  gpn_names <- genot_matrix_2_vector(odt[, -c(gpnroot, gpnfr), drop = FALSE])
+  gpn_names <- genot_matrix_2_vector(odt[, -c(gpnroot, gpnfr),
+                                         drop = FALSE])
   odt <- as.vector(odt[, "Prob"])
   names(odt) <- gpn_names
 
@@ -136,12 +137,15 @@ kill_gene_fitness_landscape <- function(fitness_landscape, gene,
 ## making that gene lethal
 ## This is the modification of the DAG of restrictions
 ## for models with DAGs
-## Model (in standard form: log-Theta matrix for MHN, data frame for the rest)
-## and gene to be killed -> model after making the gene lethal.
-## log-Theta matrix: in the output of evamtools this is MHN_theta (it is NOT
-## MHN_exp_theta: MHN_exp_theta is the matrix that results from taking the exp of
-## each element of MHN_theta). The values of MHN_theta can go from -infinity to
-## +infinity. Those of exp_theta are (0, infinity) and are the actual hazards.
+
+## Model (in standard form: log-Theta matrix for MHN, data frame for the
+## rest) and gene to be killed -> model after making the gene lethal.
+
+## log-Theta matrix: in the output of evamtools this is MHN_theta (it is
+## NOT MHN_exp_theta: MHN_exp_theta is the matrix that results from taking
+## the exp of each element of MHN_theta). The values of MHN_theta can go
+## from -infinity to +infinity. Those of exp_theta are (0, infinity) and
+## are the actual hazards.
 
 kill_gene <- function(x, gene, verbose = FALSE) {
   if (verbose) message("Standard killing: DAG/theta matrix removal")
@@ -264,9 +268,9 @@ kill_gene_MHN <- function(x, gene) {
 }
 
 
-## Model (in standard form: log-Theta matrix for MHN, data frame for the rest)
-##     and gene to be killed -> model after making the gene lethal by setting
-##     the parameter to 0
+## Model (in standard form: log-Theta matrix for MHN, data frame for the
+##     rest) and gene to be killed -> model after making the gene lethal by
+##     setting the parameter to 0
 ##     Generally only used for testing the equivalence of the
 ##     standard procedure above.
 kill_gene_by_params_to_0 <- function(x, gene, verbose = TRUE) {
@@ -337,71 +341,83 @@ kill_gene_DAG_param_0 <- function(x, gene) {
 ## standard full output (transition matrices,
 ## predicted genotype frequencies, etc)
 get_full_output <- function(x, epos = 0) {
-    ## For OT and OncoBN, with epos = 0,
-    ## we assume model is completely faithful.
-    ## This is coherent with CBN and H-ESBCN.
-    ## But we could use, for OncoBN, its estimated error
-    ## which is deviations from the model, and for
-    ## OT, epos (though this combines observation and model error).
-    ## To remove the observation error,
-    ## for OT we could set this simulation epos as
-    ## epos <- max(0, epos - eneg)
-    ## See suppl mat for EvAM-Tools,
-    ## sections 5.2
-    ## "Error models and obtaining finite samples (or
-    ## sampled genotype  counts)" and section 2.3.2
-    ## "OncoBN" and 2.3.6 "CPMs: Error models"
-    if (isTRUE(attributes(x)$method_output == "HyperHMM_trans_mat")) {
-        method <- "HyperHMM"
-        out <- list()
-        tmph <- probs_from_HyperHMM(x,
-                                    attributes(x)$num_prob.set,
-                                    attributes(x)$num_features)
-        out$HyperHMM_trans_mat <- x
-        out$HyperHMM_predicted_genotype_freqs <- tmph$predicted_genotype_freqs
-        out$HyperHMM_conditional_genotype_freqs <- tmph$predicted_genotype_freq_at_t
-    }  else if (is.matrix(x) &&
+  ## For OT and OncoBN, with epos = 0, we assume model is completely
+  ## faithful. This is coherent with CBN and H-ESBCN. But we could use, for
+  ## OncoBN, its estimated error which is deviations from the model, and
+  ## for OT, epos (though this combines observation and model error).
+  ## To remove the observation error, for OT we could set this simulation
+  ## epos as
+  ## epos <- max(0, epos - eneg)
+  ## See suppl mat for EvAM-Tools, sections 5.2 "Error models and obtaining
+  ## finite samples (or sampled genotype counts)" and section 2.3.2
+  ## "OncoBN" and 2.3.6 "CPMs: Error models"
+
+  if (isTRUE(attributes(x)$method_output == "HyperHMM_trans_mat")) {
+    method <- "HyperHMM"
+    out <- list()
+    tmph <- probs_from_HyperHMM(x,
+                                attributes(x)$num_prob.set,
+                                attributes(x)$num_features)
+    out$HyperHMM_trans_mat <- x
+    out$HyperHMM_predicted_genotype_freqs <- tmph$predicted_genotype_freqs
+    out$HyperHMM_conditional_genotype_freqs <- tmph$predicted_genotype_freq_at_t
+  }  else if (is.matrix(x) &&
                 (all(colnames(x) == rownames(x))) &&
                 is.numeric(x)
-                ) {
-        method <- "MHN"
-        out <- ev2_MHN_from_thetas_allow_neg_Inf(x)
-    } else if (is.data.frame(x) &&
+              ) {
+    method <- "MHN"
+    out <- ev2_MHN_from_thetas_allow_neg_Inf(x)
+  } else if (is.data.frame(x) &&
                ("From" %in% colnames(x)) &&
                ("To" %in% colnames(x))
-               ) {
-        ## Relation column: HESBCN or OncoBN; O.w. CBN or OT
-        if ("Relation" %in% colnames(x)) {
-            if ("theta" %in% colnames(x)) {
-                method <- "OncoBN"
-                out <- evamtools:::OncoBN_model_2_output(x, epos)
-            } else {
-                method <- "HESBCN"
-                pset <- evamtools:::parent_set_from_edges(x)
-                out <- evamtools:::HESBCN_model_2_output(x, pset)
-            }
-        } else {
-            if ("OT_edgeWeight" %in% colnames(x)) {
-                method <- "OT"
-                out <- evamtools:::OT_model_2_output(x, epos)
-            } else {
-                method <- "CBN"
-                out <- evamtools:::CBN_model_2_output(x)
-            }
-        }
+             ) {
+    ## Relation column: HESBCN or OncoBN; O.w. CBN or OT
+    if ("Relation" %in% colnames(x)) {
+      if ("theta" %in% colnames(x)) {
+        method <- "OncoBN"
+        out <- evamtools:::OncoBN_model_2_output(x, epos)
+      } else {
+        method <- "HESBCN"
+        pset <- evamtools:::parent_set_from_edges(x)
+        out <- evamtools:::HESBCN_model_2_output(x, pset)
+      }
     } else {
-        stop("get_full_output called with unrecognized structure")
+      if ("OT_edgeWeight" %in% colnames(x)) {
+        method <- "OT"
+        out <- evamtools:::OT_model_2_output(x, epos)
+      } else {
+        method <- "CBN"
+        out <- evamtools:::CBN_model_2_output(x)
+      }
     }
+  } else {
+    stop("get_full_output called with unrecognized structure")
+  }
 
-    if (method %in% c("CBN", "MHN", "HESBCN")) {
-        outname <- paste0(method, "_predicted_genotype_freqs")
-        inname  <- paste0(method, "_trans_rate_mat")
-        out[[outname]] <- evamtools:::probs_from_trm(out[[inname]])
-    }
-    trans_mat_key <- paste0(method, "_trans_mat")
-    out[[paste0(method, "_hitting_probs_from_WT")]] <-
-        hitting_probs_from_WT(out[[trans_mat_key]])
-    return(out)
+  if (method %in% c("CBN", "MHN", "HESBCN")) {
+    outname <- paste0(method, "_predicted_genotype_freqs")
+    inname  <- paste0(method, "_trans_rate_mat")
+    out[[outname]] <- evamtools:::probs_from_trm(out[[inname]])
+  }
+  trans_mat_key <- paste0(method, "_trans_mat")
+
+  ## Compute the WT hitting probabilities both ways
+  ## (markovchain::hittingProbabilities and our direct kept as the
+  ## comparison) and record their divergence. Only HyperHMM needs the
+  ## transition matrix thresholded first. See rationale and details in
+  ## comments before function threshold_transition_matrix (file trm.R).
+
+  hp_key   <- paste0(method, "_hitting_probs_from_WT")
+  hpd_key  <- paste0(method, "_hitting_probs_from_WT_direct")
+  div_key  <- paste0(method, "_divergence_hitting_prob_calculation")
+  if (method == "HyperHMM") {
+    out[[trans_mat_key]] <- threshold_transition_matrix(out[[trans_mat_key]])
+  }
+  both <- hitting_probs_from_WT_both(out[[trans_mat_key]], context = method)
+  out[[hp_key]]  <- both$hp          ## canonical: markovchain
+  out[[hpd_key]] <- both$hp_direct   ## comparison: direct
+  out[[div_key]] <- both$divergence
+  return(out)
 }
 
 
@@ -422,144 +438,160 @@ get_genotype_freqs_cpm <- function(model, t = NA) {
                 divergence_hitting_prob_calculation = 0.0))
     }
 
-    ## Find out the method.
-    ## For reasons I do not remember, I wrote all initial code
-    ## without passing the method, so I inferred it from the type of output.
-    ## Becomes more complicated if we have both MHN and HyperHMM.
-    ## The first condition is an addition, a lot after the rest of the code
-    ## was in place.
-    if (isTRUE(attributes(model)$method_output == "HyperHMM_trans_mat")) {
-        method <- "HyperHMM"
-    }  else if (is.matrix(model) &&
+  ## Find out the method.
+  ## For reasons I do not remember, I wrote all initial code
+  ## without passing the method, so I inferred it from the type of output.
+  ## Becomes more complicated if we have both MHN and HyperHMM.
+  ## The first condition is an addition, a lot after the rest of the code
+  ## was in place.
+  if (isTRUE(attributes(model)$method_output == "HyperHMM_trans_mat")) {
+    method <- "HyperHMM"
+  }  else if (is.matrix(model) &&
                 (all(colnames(model) == rownames(model))) &&
-               is.numeric(model)) {
-        method <- "MHN"
-    } else if (is.data.frame(model) &&
+                is.numeric(model)) {
+    method <- "MHN"
+  } else if (is.data.frame(model) &&
                ("From" %in% colnames(model)) &&
                ("To" %in% colnames(model))) {
-        if ("Relation" %in% colnames(model)) {
-            if ("theta" %in% colnames(model)) {
-                method <- "OncoBN"
-            } else if ("Lambdas" %in% colnames(model))  {
-                method <- "HESBCN"
-            } else {
-                stop("Model structure not recognized")
-            }
-        } else {
-            if ("OT_edgeWeight" %in% colnames(model)) {
-                method <- "OT"
-            } else if ("rerun_lambda" %in% colnames(model)) {
-                method <- "CBN"
-            } else {
-                stop("Model structure not recognized")
-            }
-        }
+    if ("Relation" %in% colnames(model)) {
+      if ("theta" %in% colnames(model)) {
+        method <- "OncoBN"
+      } else if ("Lambdas" %in% colnames(model))  {
+        method <- "HESBCN"
+      } else {
+        stop("Model structure not recognized")
+      }
     } else {
-        stop("unrecognized structure")
+      if ("OT_edgeWeight" %in% colnames(model)) {
+        method <- "OT"
+      } else if ("rerun_lambda" %in% colnames(model)) {
+        method <- "CBN"
+      } else {
+        stop("Model structure not recognized")
+      }
     }
+  } else {
+    stop("unrecognized structure")
+  }
 
-    if (!is.na(t) && (method %in% c("OT", "OncoBN", "HyperHMM"))) {
-        warning("With methods ",
-                "OT, OncoBN, and HyperHMM ",
-                "get_genotype_freqs_cpm ignores the value of t.")
-    }
+  if (!is.na(t) && (method %in% c("OT", "OncoBN", "HyperHMM"))) {
+    warning("With methods ",
+            "OT, OncoBN, and HyperHMM ",
+            "get_genotype_freqs_cpm ignores the value of t.")
+  }
 
-    if (nrow(model) == 1 &&
+  if (nrow(model) == 1 &&
         method %in% c("OT", "OncoBN")) {
-        mut_gene <- model[1, 2]
-        freq_mut <- model[1, ifelse(method == "OT", "OT_edgeWeight", "theta")]
-        freqs <- c(1 - freq_mut, freq_mut)
-        names(freqs) <- c("WT", mut_gene)
-        ## From WT the only accessible state is mut_gene, so hitting prob = 1
-        hp <- c(0.0, 1.0)
-        names(hp) <- c("WT", mut_gene)
-        return(list(genot_freqs = freqs, hitting_probs_from_WT = hp))
+    mut_gene <- model[1, 2]
+    freq_mut <- model[1, ifelse(method == "OT", "OT_edgeWeight", "theta")]
+    freqs <- c(1 - freq_mut, freq_mut)
+    names(freqs) <- c("WT", mut_gene)
+    ## From WT the only accessible state is mut_gene, so hitting prob = 1
+    hp <- c(0.0, 1.0)
+    names(hp) <- c("WT", mut_gene)
+    return(list(genot_freqs = freqs, hitting_probs_from_WT = hp,
+                hitting_probs_from_WT_direct = hp,
+                divergence_hitting_prob_calculation = 0.0))
+  }
+
+  output <- get_full_output(model, epos = 0)
+  hp  <- output[[paste0(method, "_hitting_probs_from_WT")]]
+  hpd <- output[[paste0(method, "_hitting_probs_from_WT_direct")]]
+  div <- output[[paste0(method, "_divergence_hitting_prob_calculation")]]
+
+  if (method %in% c("OT", "OncoBN")) {
+    return(list(genot_freqs = output[[paste0(method,
+                                             "_predicted_genotype_freqs")]],
+                hitting_probs_from_WT = hp,
+                hitting_probs_from_WT_direct = hpd,
+                divergence_hitting_prob_calculation = div))
     }
 
-    output <- get_full_output(model, epos = 0)
-    hp <- output[[paste0(method, "_hitting_probs_from_WT")]]
+  if (method %in% c("HyperHMM")) {
+    return(list(genot_freqs = output$HyperHMM_predicted_genotype_freqs,
+                hitting_probs_from_WT = hp,
+                hitting_probs_from_WT_direct = hpd,
+                divergence_hitting_prob_calculation = div))
+  }
 
-    if (method %in% c("OT", "OncoBN")) {
-        return(list(genot_freqs = output[[paste0(method, "_predicted_genotype_freqs")]],
-                    hitting_probs_from_WT = hp))
-    }
-
-    if (method %in% c("HyperHMM")) {
-        return(list(genot_freqs = output$HyperHMM_predicted_genotype_freqs,
-                    hitting_probs_from_WT = hp))
-    }
-
-    ## CBN, HESBCN, MHN
-    if (is.na(t)) {
-        genot_freqs <- output[[paste0(method, "_predicted_genotype_freqs")]]
-    } else {
-        trans_name <- paste0(method, "_trans_rate_mat")
-        trans_rate_mat <- output[[trans_name]]
-        ## The predicted genotype frequencies are already part
-        ## of the CBN, HESBCN, and MHN output object
-        ## but, here, we allow ourselves to pass a different t.
-        genot_freqs <- genots_from_trm(trans_rate_mat, t = t)
-    }
-    return(list(genot_freqs = genot_freqs, hitting_probs_from_WT = hp))
+  ## CBN, HESBCN, MHN
+  if (is.na(t)) {
+    genot_freqs <- output[[paste0(method, "_predicted_genotype_freqs")]]
+  } else {
+    trans_name <- paste0(method, "_trans_rate_mat")
+    trans_rate_mat <- output[[trans_name]]
+    ## The predicted genotype frequencies are already part
+    ## of the CBN, HESBCN, and MHN output object
+    ## but, here, we allow ourselves to pass a different t.
+    genot_freqs <- genots_from_trm(trans_rate_mat, t = t)
+  }
+  return(list(genot_freqs = genot_freqs, hitting_probs_from_WT = hp,
+              hitting_probs_from_WT_direct = hpd,
+              divergence_hitting_prob_calculation = div))
 }
 
 
+## Killing gene for HyperHMM. But you probably want to
+## use kill_gene_HyperHMM_drop_unreachable, below.
 kill_gene_HyperHMM <- function(x, gene) {
-    if (length(gene) != 1) stop("length(gene) != 1")
-    ## 1. Find genotypes that are killed
-    ## 2. Assign that probability to the diagonal
-    ## 3. Zero the entries killed
+  if (length(gene) != 1) stop("length(gene) != 1")
+  ## 1. Find genotypes that are killed
+  ## 2. Assign that probability to the diagonal
+  ## 3. Zero the entries killed
 
-    ## 1. Find genotypes
-    genots_before <- colnames(x)
-    gk_st <- grep(paste0("^", gene, ", "), genots_before)
-    gk_en <- grep(paste0(", ", gene, "$"), genots_before)
-    gk_in <- grep(paste0(", ", gene, ","), genots_before, fixed = TRUE)
-    gk_sg <- grep(paste0("^", gene, "$"), genots_before)
-    gk <- unique(c(gk_st, gk_en, gk_in, gk_sg))
+  ## 1. Find genotypes
+  genots_before <- colnames(x)
+  gk_st <- grep(paste0("^", gene, ", "), genots_before)
+  gk_en <- grep(paste0(", ", gene, "$"), genots_before)
+  gk_in <- grep(paste0(", ", gene, ","), genots_before, fixed = TRUE)
+  gk_sg <- grep(paste0("^", gene, "$"), genots_before)
+  gk <- unique(c(gk_st, gk_en, gk_in, gk_sg))
 
-    if (length(gk) == 0) {
-        warning("Removal of gene ", gene,
-                "has no effect.")
-        return(x)
-    }
+  if (length(gk) == 0) {
+    warning("Removal of gene ", gene,
+            " has no effect.")
+    return(x)
+  }
 
-    x1 <- x
-    ## (part of 3. zeroing, and making life simpler for sanity check)
-    x1[gk, ] <- 0
-    ## x2 is for a different procedure, below, to check
-    x2 <- x1
+  x1 <- x
+  ## (part of 3. zeroing, and making life simpler for sanity check)
+  x1[gk, ] <- 0
+  ## x2 is for a different procedure, below, to check
+  x2 <- x1
 
-    ## Sanity check. Should only kill one per row,
-    ## except when killed is the row (that was zeroed)
-    to_zero <- apply(x1[, gk], 1, function(z) sum(z > 0))
-    if (any(to_zero > 1)) {
-        message("Killing more than one!")
-        browser()
-        stop("Killing more than one!")
-    }
+  ## Sanity check. Should only kill one per row,
+  ## except when killed is the row (that was zeroed)
+  to_zero <- apply(x1[, gk], 1, function(z) sum(z > 0))
+  if (any(to_zero > 1)) {
+    message("Killing more than one!")
+    browser()
+    stop("Killing more than one!")
+  }
 
-    ## Procedure A
-    ## 2. Assign to diagonal
-    prob_to_killed <- apply(x1[, gk], 1, function(z) sum(z))
-    diag(x1) <- prob_to_killed
-    ## 3. Zero the destination
-    x1[, gk] <- 0
+  ## Procedure A
+  ## 2. Assign to diagonal
+  prob_to_killed <- apply(x1[, gk], 1, function(z) sum(z))
+  diag(x1) <- prob_to_killed
+  ## 3. Zero the destination
+  x1[, gk] <- 0
 
-    paranoid_check <- TRUE
-    if (paranoid_check) {
-        ## Procedure B
-        ## zero destination, get diagonal by difference
-        x2[, gk] <- 0
-        diag(x2) <- 1.0 - rowSums(x2)
-        x2[gk, ] <- 0 ## they were assigned a 1 in diag
-        stopifnot(isTRUE(all.equal(x1, x2)))
-    }
+  paranoid_check <- TRUE
+  if (paranoid_check) {
+    ## Procedure B
+    ## zero destination, get diagonal by difference
+    x2[, gk] <- 0
+    diag(x2) <- 1.0 - rowSums(x2)
+    x2[gk, ] <- 0 ## they were assigned a 1 in diag
+    stopifnot(isTRUE(all.equal(x1, x2)))
+  }
 
-    ## Set required attributes
-    attr(x1, "method_output") <- "HyperHMM_trans_mat"
-    attr(x1, "num_prob.set") <- attributes(x)$num_prob.set
-    attr(x1, "num_features") <- attributes(x)$num_features
+  ## Set required attributes
+  attr(x1, "method_output") <- "HyperHMM_trans_mat"
+  attr(x1, "num_prob.set") <- attributes(x)$num_prob.set
+  attr(x1, "num_features") <- attributes(x)$num_features
+
+  return(x1)
+}
 
 
 ## Variant of kill_gene_HyperHMM that drops the killed genotypes (those
