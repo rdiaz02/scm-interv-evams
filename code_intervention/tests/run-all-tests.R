@@ -22,16 +22,16 @@
 Sys.setenv(OMP_NUM_THREADS = "1",
            OPENBLAS_NUM_THREADS = "1",
            MKL_NUM_THREADS = "1")
-if (requireNamespace("RhpcBLASctl", quietly = TRUE)) {
-  RhpcBLASctl::blas_set_num_threads(1)
-  RhpcBLASctl::omp_set_num_threads(1)
-} else {
-  message("RhpcBLASctl not installed: BLAS/OpenMP threads not limited")
-}
+RhpcBLASctl::blas_set_num_threads(1)
+RhpcBLASctl::omp_set_num_threads(1)
 
 version
 date()
-library(testthat)
+
+## Make sure all packages we need exist. Otherwise, we will abort
+## immediately
+
+source("../dependencies.R", echo = TRUE)
 
 
 options(intervention_every_gene_cores = parallel::detectCores())
