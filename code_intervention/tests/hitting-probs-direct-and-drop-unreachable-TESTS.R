@@ -273,7 +273,7 @@ test_that("dropping unreachable does not change direct hitting probs", {
 ## absorbing states. This is the case that showed the markovchain bug: direct
 ## must match the Monte-Carlo ground truth and be a valid probability vector,
 ## while markovchain was demonstrably wrong here: far from the simulation.
-test_that("45-absorbing fixture: direct correct, legacy markovchain wrong", {
+test_that("45-absorbing fixture: direct correct (formerly also legacy markovchain wrong)", {
   tm <- readRDS("fixture_hyperhmm_9genes.rds")
   expect_equal(attributes(tm)$num_features, 9)
 
@@ -292,8 +292,13 @@ test_that("45-absorbing fixture: direct correct, legacy markovchain wrong", {
   ## LAPACK stack decides whether solve() returns an approximate (negative,
   ## mathematically impossible) solution or throws "solve(): solution not
   ## found". We accept EITHER as proof that markovchain is broken here.
-  hp_legacy <- tryCatch(suppressWarnings(hitting_probs_from_WT(killF)),
-                        error = function(e) e)
+  ## Well, no; as said below:
+  ## this is all very fragile; markovchaing could fix this completely
+  ## or introduce other changes (this is in a state of flux) and this
+  ## would fail for reasons I have no control over and that would
+  ## not affect our code (as we have the divergence check)
+  ## hp_legacy <- tryCatch(suppressWarnings(hitting_probs_from_WT(killF)),
+  ##                       error = function(e) e)
 
   set.seed(7)
   mc <- mc_hitting_from_WT(killF, nsim = 100000)
@@ -312,12 +317,17 @@ test_that("45-absorbing fixture: direct correct, legacy markovchain wrong", {
   ## As of 2026-09-18 the fix/hittingprobs branch commit db73e689
   ## works fine. It differs from the Monte Carlo because we use
   ## 1-e12 thresholding in the Monte Carlo, but not in the matrix
-  ## we give to markovchain.
-  if (inherits(hp_legacy, "error")) {
-    succeed("markovchain errors on the ill-conditioned chain")
-  } else {
-    expect_true(max_diff_off_wt(hp_legacy, mc) > 0.05)
-  }
+  ## we give to markovchain. Actually, no:
+  ## this is all very fragile; markovchaing could fix this completely
+  ## or introduce other changes (this is in a state of flux) and this
+  ## would fail for reasons I have no control over and that would
+  ## not affect our code (as we have the divergence check)
+  ## Commented for now.
+  ## if (inherits(hp_legacy, "error")) {
+  ##   succeed("markovchain errors on the ill-conditioned chain")
+  ## } else {
+  ##   expect_true(max_diff_off_wt(hp_legacy, mc) > 0.05)
+  ## }
 })
 
 set.seed(NULL)
