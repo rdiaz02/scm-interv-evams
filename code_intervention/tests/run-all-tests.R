@@ -49,9 +49,54 @@ for (f in tests_files) {
     cat("#### Running", f, "\n")
     cat("#######################################\n\n")
     results <- test_file(f)
-    n_failures <- sum(as.data.frame(results)$failed)
-    if (n_failures > 0) {
-        stop(n_failures, " failure(s) in ", f, ". Aborting.")
+    ## Why we check more than the "failed" column.
+    ##
+    ## test_file() returns a table with one row per test_that block.
+    ## Its "failed" column counts only failed expectations (e.g., an
+    ## expect_true() that got FALSE). There are several ways in which
+    ## a test file can be broken and still have failed = 0. If we only
+    ## checked "failed", those broken files would pass silently. So we
+    ## check each of these cases:
+    ##
+    ## 1. A package loaded with library() is not installed. testthat
+    ##    does not report this as a failure or as an error. Instead, it
+    ##    records no tests at all, so the table has zero rows. Zero
+    ##    rows means nothing was tested, so we abort. (dependencies.R,
+    ##    sourced above, should already catch the packages we know
+    ##    about; this check catches any we missed.)
+    ##
+    ## 2. An error happens outside any test_that block; for example,
+    ##    suppose `source("intervention.R")` at the top of a test file
+    ##    fails. testthat records a single row with error = TRUE, failed =
+    ##    0 and passed = 0. But none of the tests in that file ran.
+    ##
+    ## 3. An error happens inside a test_that block. That block's row
+    ##    gets error = TRUE, but failed stays 0, because an error is
+    ##    not a failed expectation. And the rest of that block does not
+    ##    run.
+    ##
+    ##    For cases 2 and 3, we abort if any row has error = TRUE.
+    ##
+    ## 4. Skipped tests give skipped = TRUE. A test_that block with no
+    ##    expectations also counts as skipped. Because no tests in our
+    ##    test suite are skipped on purpose, if a test is skipped that
+    ##    means something is broken. Thus, we abort as soon as a test
+    ##    is skipped.
+    ##
+    ## 5. As a last safety net, we abort if no expectation passed in
+    ##    the file.
+
+    res_df <- as.data.frame(results)
+    if (nrow(res_df) == 0)
+        stop("No test results recorded in ", f, ". Aborting.")
+    n_failures <- sum(res_df$failed)
+    n_errors <- sum(res_df$error)
+    n_skipped <- sum(res_df$skipped)
+    n_passed <- sum(res_df$passed)
+    if (n_failures > 0 || n_errors > 0 || n_skipped > 0 || n_passed == 0) {
+        stop("In ", f, ": ", n_failures, " failure(s), ", n_errors,
+             " error(s), ", n_skipped, " skip(s), ", n_passed,
+             " passed expectation(s). Aborting.")
     }
 }
 

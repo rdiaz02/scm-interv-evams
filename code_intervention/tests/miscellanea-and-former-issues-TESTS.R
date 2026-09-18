@@ -307,6 +307,13 @@ test_that("Explaining the warning about unreachable destinations", {
     gg2m3 <- gg2(kill_gene_by_params_to_0(m3, "Z", verbose = TRUE))
     gg2m4 <- gg2(kill_gene_by_params_to_0(m4, "E", verbose = TRUE))
 
+    ## Killing the gene everything depends on leaves only WT
+    ## (frequencies sum to 1, so WT = 1 means all others are 0)
+    expect_true(all.equal(gg2m1[["pred_genots"]][["WT"]], 1))
+    expect_true(all.equal(gg2m2[["pred_genots"]][["WT"]], 1))
+    expect_true(all.equal(gg2m3[["pred_genots"]][["WT"]], 1))
+    expect_true(all.equal(gg2m4[["pred_genots"]][["WT"]], 1))
+
 
     #### CBN
     ## Notice there are non-zero entries in destinations like A, B  and A, C, etc
