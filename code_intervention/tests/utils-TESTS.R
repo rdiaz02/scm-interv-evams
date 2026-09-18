@@ -33,7 +33,9 @@ test_that("get_square_matrix returns a square matrix", {
   matrix_2x3 <- get_square_matrix(matrix(runif(6), nrow = 2,
                        dimnames = list(c("A", "B"), c("A", "B", "C"))))
   matrix_2x3_sparse <- get_square_matrix(Matrix(runif(6), nrow = 2,
-                       dimnames = list(c("A", "B"), c("A", "B", "C")), sparse = TRUE))
+                                                dimnames = list(c("A", "B"),
+                                                                c("A", "B", "C")),
+                                                sparse = TRUE))
   expect_equal(nrow(matrix_2x3), ncol(matrix_2x3))
   expect_equal(nrow(matrix_2x3), 3)
   expect_equal(nrow(matrix_2x3_sparse), ncol(matrix_2x3_sparse))
@@ -43,15 +45,18 @@ test_that("get_square_matrix returns a square matrix", {
 test_that("get_square_matrix returns expected ouput", {
   mtx <- Matrix(c(1,2,3,4,5,6), nrow = 2, byrow = TRUE,
                 dimnames = list(c("A", "B"), c("A", "B", "C")))
-  expect_equal(get_square_matrix(mtx, 0), Matrix(c(1,2,3,4,5,6,0,0,0), nrow = 3,
-                                                 byrow = TRUE, sparse = TRUE,
-                                                 dimnames = list(c("A", "B", "C"), c("A", "B", "C"))))
+  expect_equal(get_square_matrix(mtx, 0),
+               Matrix(c(1,2,3,4,5,6,0,0,0), nrow = 3,
+                      byrow = TRUE, sparse = TRUE,
+                      dimnames = list(c("A", "B", "C"),
+                                      c("A", "B", "C"))))
   mtx2 <- Matrix(c(1,2,3,4,5,6), nrow = 2, byrow = TRUE,
                  dimnames = list(c("A", "D"), c("A", "B", "C")))
-  expect_equal(get_square_matrix(mtx2, 0), Matrix(c(1,2,3,0,0,0,0,0,0,0,0,0,4,5,6,0), nrow = 4,
-                                                  byrow = TRUE, sparse = TRUE,
-                                                  dimnames = list(c("A", "B", "C", "D"),
-                                                                  c("A", "B", "C", "D"))))
+  expect_equal(get_square_matrix(mtx2, 0),
+               Matrix(c(1,2,3,0,0,0,0,0,0,0,0,0,4,5,6,0), nrow = 4,
+                      byrow = TRUE, sparse = TRUE,
+                      dimnames = list(c("A", "B", "C", "D"),
+                                      c("A", "B", "C", "D"))))
 })
 
 set.seed(NULL)

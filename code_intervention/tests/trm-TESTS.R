@@ -1,31 +1,31 @@
 ## Copyright 2022 Ramon Diaz-Uriarte
 
-## This program is free software: you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License (AGPLv3.0) as published by
-## the Free Software Foundation, either version 3 of the License, or (at your
-## option) any later version.
+## This program is free software: you can redistribute it and/or modify it
+## under the terms of the GNU Affero General Public License (AGPLv3.0) as
+## published by the Free Software Foundation, either version 3 of the
+## License, or (at your option) any later version.
 
-## This program is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Affero General Public License for more details.
+## This program is distributed in the hope that it will be useful, but
+## WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+## General Public License for more details.
 
-## You should have received a copy of the GNU Affero General Public License along
-## with this program.  If not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 ### What this is
 
-## Tests of genots_at_t_from_trm and probs_uniform_sampling_custom from trm.R,
-## using closed-form analytical ground truths on minimal absorbing chains.
-## Also tests of hitting probabilities.
+## Tests of genots_at_t_from_trm and probs_uniform_sampling_custom from
+## trm.R, using closed-form analytical ground truths on minimal absorbing
+## chains. Also tests of hitting probabilities.
 ##
 ##
-## genots_at_t_from_trm(trm, t) uses matrix exponentiation (expm::expAtv) to
-## compute the genotype distribution at exact time t.
+## genots_at_t_from_trm(trm, t) uses matrix exponentiation (expm::expAtv)
+## to compute the genotype distribution at exact time t.
 ##
-## probs_uniform_sampling_custom(trm) averages genots_at_t_from_trm over 101
-## equally-spaced time points in [0, 5].
+## probs_uniform_sampling_custom(trm) averages genots_at_t_from_trm over
+## 101 equally-spaced time points in [0, 5].
 ##
 ## For both, the analytical ground truth comes from closed-form solutions:
 ##
@@ -82,27 +82,27 @@ set.seed(NULL)
 ##  A  [  0   0 ]
 
 test_that("genots_at_t_from_trm: 1-gene absorbing chain, analytical ground truth", {
-    local_edition(3)
+  local_edition(3)
 
-    r <- 2.5
+  r <- 2.5
 
-    trm1 <- matrix(c(0, r,
-                     0, 0),
-                   nrow = 2, ncol = 2, byrow = TRUE,
-                   dimnames = list(c("WT", "A"), c("WT", "A")))
+  trm1 <- matrix(c(0, r,
+                   0, 0),
+                 nrow = 2, ncol = 2, byrow = TRUE,
+                 dimnames = list(c("WT", "A"), c("WT", "A")))
 
-    for (t in c(0, 0.01, 0.1, 0.5, 1, 2, 5, 10)) {
-        result <- genots_at_t_from_trm(trm1, t)
-        expect_equal(result[["WT"]], exp(-r * t),
-                     tolerance = 1e-8,
-                     label = paste("WT at t =", t))
-        expect_equal(result[["A"]], 1 - exp(-r * t),
-                     tolerance = 1e-8,
-                     label = paste("A at t =", t))
-        expect_equal(sum(result), 1.0,
-                     tolerance = 1e-8,
-                     label = paste("sum = 1 at t =", t))
-    }
+  for (t in c(0, 0.01, 0.1, 0.5, 1, 2, 5, 10)) {
+    result <- genots_at_t_from_trm(trm1, t)
+    expect_equal(result[["WT"]], exp(-r * t),
+                 tolerance = 1e-8,
+                 label = paste("WT at t =", t))
+    expect_equal(result[["A"]], 1 - exp(-r * t),
+                 tolerance = 1e-8,
+                 label = paste("A at t =", t))
+    expect_equal(sum(result), 1.0,
+                 tolerance = 1e-8,
+                 label = paste("sum = 1 at t =", t))
+  }
 })
 
 
@@ -119,62 +119,62 @@ test_that("genots_at_t_from_trm: 1-gene absorbing chain, analytical ground truth
 ## (A, B) is absorbing.
 
 test_that("genots_at_t_from_trm and probs_uniform_sampling_custom: 2-gene sequential chain", {
-    local_edition(3)
+  local_edition(3)
 
-    r1 <- 1.5
-    r2 <- 3.5   ## r1 != r2 required by the closed-form solution
+  r1 <- 1.5
+  r2 <- 3.5   ## r1 != r2 required by the closed-form solution
 
-    trm2 <- matrix(0, nrow = 4, ncol = 4,
-                   dimnames = list(c("WT", "A", "B", "A, B"),
-                                   c("WT", "A", "B", "A, B")))
-    trm2["WT", "A"]   <- r1
-    trm2["A", "A, B"] <- r2
+  trm2 <- matrix(0, nrow = 4, ncol = 4,
+                 dimnames = list(c("WT", "A", "B", "A, B"),
+                                 c("WT", "A", "B", "A, B")))
+  trm2["WT", "A"]   <- r1
+  trm2["A", "A, B"] <- r2
 
-    ## ---- genots_at_t_from_trm ----
-    for (t in c(0, 0.01, 0.1, 0.5, 1, 2, 5)) {
-        result <- genots_at_t_from_trm(trm2, t)
+  ## ---- genots_at_t_from_trm ----
+  for (t in c(0, 0.01, 0.1, 0.5, 1, 2, 5)) {
+    result <- genots_at_t_from_trm(trm2, t)
 
-        p_WT <- exp(-r1 * t)
-        p_A  <- r1 / (r2 - r1) * (exp(-r1 * t) - exp(-r2 * t))
-        p_AB <- 1 - p_WT - p_A
+    p_WT <- exp(-r1 * t)
+    p_A  <- r1 / (r2 - r1) * (exp(-r1 * t) - exp(-r2 * t))
+    p_AB <- 1 - p_WT - p_A
 
-        expect_equal(result[["WT"]],   p_WT, tolerance = 1e-8,
-                     label = paste("WT at t =", t))
-        expect_equal(result[["A"]],    p_A,  tolerance = 1e-8,
-                     label = paste("A at t =", t))
-        expect_equal(result[["B"]],    0,    tolerance = 1e-8,
-                     label = paste("B at t =", t))
-        expect_equal(result[["A, B"]], p_AB, tolerance = 1e-8,
-                     label = paste("A, B at t =", t))
-        expect_equal(sum(result), 1.0, tolerance = 1e-8,
-                     label = paste("sum = 1 at t =", t))
-    }
+    expect_equal(result[["WT"]],   p_WT, tolerance = 1e-8,
+                 label = paste("WT at t =", t))
+    expect_equal(result[["A"]],    p_A,  tolerance = 1e-8,
+                 label = paste("A at t =", t))
+    expect_equal(result[["B"]],    0,    tolerance = 1e-8,
+                 label = paste("B at t =", t))
+    expect_equal(result[["A, B"]], p_AB, tolerance = 1e-8,
+                 label = paste("A, B at t =", t))
+    expect_equal(sum(result), 1.0, tolerance = 1e-8,
+                 label = paste("sum = 1 at t =", t))
+  }
 
-    ## ---- probs_uniform_sampling_custom ----
-    ## Analytical check: scalar formulas over the same 101 time points,
-    ## with no matrices or expm involved.
-    times <- seq(from = 0, to = 5, length.out = 101)
-    p_WT_v  <- exp(-r1 * times)
-    p_A_v   <- r1 / (r2 - r1) * (exp(-r1 * times) - exp(-r2 * times))
-    p_AB_v  <- 1 - p_WT_v - p_A_v
+  ## ---- probs_uniform_sampling_custom ----
+  ## Analytical check: scalar formulas over the same 101 time points,
+  ## with no matrices or expm involved.
+  times <- seq(from = 0, to = 5, length.out = 101)
+  p_WT_v  <- exp(-r1 * times)
+  p_A_v   <- r1 / (r2 - r1) * (exp(-r1 * times) - exp(-r2 * times))
+  p_AB_v  <- 1 - p_WT_v - p_A_v
 
-    expected_WT <- mean(p_WT_v)
-    expected_A  <- mean(p_A_v)
-    expected_B  <- 0
-    expected_AB <- mean(p_AB_v)
+  expected_WT <- mean(p_WT_v)
+  expected_A  <- mean(p_A_v)
+  expected_B  <- 0
+  expected_AB <- mean(p_AB_v)
 
-    result_u <- probs_uniform_sampling_custom(trm2)
+  result_u <- probs_uniform_sampling_custom(trm2)
 
-    expect_equal(result_u[["WT"]],   expected_WT, tolerance = 1e-8,
-                 label = "uniform WT")
-    expect_equal(result_u[["A"]],    expected_A,  tolerance = 1e-8,
-                 label = "uniform A")
-    expect_equal(result_u[["B"]],    expected_B,  tolerance = 1e-8,
-                 label = "uniform B")
-    expect_equal(result_u[["A, B"]], expected_AB, tolerance = 1e-8,
-                 label = "uniform A, B")
-    expect_equal(sum(result_u), 1.0, tolerance = 1e-8,
-                 label = "uniform sum = 1")
+  expect_equal(result_u[["WT"]],   expected_WT, tolerance = 1e-8,
+               label = "uniform WT")
+  expect_equal(result_u[["A"]],    expected_A,  tolerance = 1e-8,
+               label = "uniform A")
+  expect_equal(result_u[["B"]],    expected_B,  tolerance = 1e-8,
+               label = "uniform B")
+  expect_equal(result_u[["A, B"]], expected_AB, tolerance = 1e-8,
+               label = "uniform A, B")
+  expect_equal(sum(result_u), 1.0, tolerance = 1e-8,
+               label = "uniform sum = 1")
 })
 
 
@@ -196,59 +196,59 @@ test_that("genots_at_t_from_trm and probs_uniform_sampling_custom: 2-gene sequen
 ## of the exact-time prediction, and the test would fail.
 
 test_that("t parameter threading: intervene_cpm_every_gene passes t correctly", {
-    local_edition(3)
+  local_edition(3)
 
-    r  <- 2.5
-    r1 <- 1.5
-    r2 <- 3.5
+  r  <- 2.5
+  r1 <- 1.5
+  r2 <- 3.5
 
-    ## 1-gene CBN: one gene A from Root with rate r
-    cbn1 <- data.frame(From = "Root", To = "A",
-                       rerun_lambda = r,
-                       stringsAsFactors = FALSE)
+  ## 1-gene CBN: one gene A from Root with rate r
+  cbn1 <- data.frame(From = "Root", To = "A",
+                     rerun_lambda = r,
+                     stringsAsFactors = FALSE)
 
-    ## 2-gene sequential CBN: A from Root (r1), B from A (r2)
-    ## B is unreachable from WT (AND constraint; B requires A)
-    cbn2 <- data.frame(From         = c("Root", "A"),
-                       To           = c("A",    "B"),
-                       rerun_lambda = c(r1,      r2),
-                       stringsAsFactors = FALSE)
+  ## 2-gene sequential CBN: A from Root (r1), B from A (r2)
+  ## B is unreachable from WT (AND constraint; B requires A)
+  cbn2 <- data.frame(From         = c("Root", "A"),
+                     To           = c("A",    "B"),
+                     rerun_lambda = c(r1,      r2),
+                     stringsAsFactors = FALSE)
 
-    for (t_val in c(0.5, 1, 2)) {
+  for (t_val in c(0.5, 1, 2)) {
 
-        ## --- 1-gene model ---
-        res1 <- suppressWarnings(
-            intervene_cpm_every_gene(list(CBN_model = cbn1), "CBN",
-                                     t = t_val))
-        ni1 <- res1[["no_intervention"]]$genot_freqs
+    ## --- 1-gene model ---
+    res1 <- suppressWarnings(
+      intervene_cpm_every_gene(list(CBN_model = cbn1), "CBN",
+                               t = t_val))
+    ni1 <- res1[["no_intervention"]]$genot_freqs
 
-        expect_equal(ni1[["WT"]], exp(-r * t_val),
-                     tolerance = 1e-6,
-                     label = paste("1-gene WT, t =", t_val))
-        expect_equal(ni1[["A"]], 1 - exp(-r * t_val),
-                     tolerance = 1e-6,
-                     label = paste("1-gene A, t =", t_val))
+    expect_equal(ni1[["WT"]], exp(-r * t_val),
+                 tolerance = 1e-6,
+                 label = paste("1-gene WT, t =", t_val))
+    expect_equal(ni1[["A"]], 1 - exp(-r * t_val),
+                 tolerance = 1e-6,
+                 label = paste("1-gene A, t =", t_val))
 
-        ## --- 2-gene sequential model ---
-        res2 <- suppressWarnings(
-            intervene_cpm_every_gene(list(CBN_model = cbn2), "CBN",
-                                     t = t_val))
-        ni2 <- res2[["no_intervention"]]$genot_freqs
+    ## --- 2-gene sequential model ---
+    res2 <- suppressWarnings(
+      intervene_cpm_every_gene(list(CBN_model = cbn2), "CBN",
+                               t = t_val))
+    ni2 <- res2[["no_intervention"]]$genot_freqs
 
-        p_WT <- exp(-r1 * t_val)
-        p_A  <- r1 / (r2 - r1) * (exp(-r1 * t_val) - exp(-r2 * t_val))
-        p_AB <- 1 - p_WT - p_A
+    p_WT <- exp(-r1 * t_val)
+    p_A  <- r1 / (r2 - r1) * (exp(-r1 * t_val) - exp(-r2 * t_val))
+    p_AB <- 1 - p_WT - p_A
 
-        expect_equal(ni2[["WT"]],   p_WT, tolerance = 1e-6,
-                     label = paste("2-gene WT, t =", t_val))
-        expect_equal(ni2[["A"]],    p_A,  tolerance = 1e-6,
-                     label = paste("2-gene A, t =", t_val))
-        expect_equal(ni2[["A, B"]], p_AB, tolerance = 1e-6,
-                     label = paste("2-gene A, B, t =", t_val))
-        ## B has zero probability (requires A; unreachable from WT)
-        expect_false("B" %in% names(ni2),
-                     label = paste("2-gene B absent, t =", t_val))
-    }
+    expect_equal(ni2[["WT"]],   p_WT, tolerance = 1e-6,
+                 label = paste("2-gene WT, t =", t_val))
+    expect_equal(ni2[["A"]],    p_A,  tolerance = 1e-6,
+                 label = paste("2-gene A, t =", t_val))
+    expect_equal(ni2[["A, B"]], p_AB, tolerance = 1e-6,
+                 label = paste("2-gene A, B, t =", t_val))
+    ## B has zero probability (requires A; unreachable from WT)
+    expect_false("B" %in% names(ni2),
+                 label = paste("2-gene B absent, t =", t_val))
+  }
 })
 
 
@@ -288,31 +288,31 @@ test_that("to_markovchain works for disconnected states", {
 
 
 test_that("hitting_probs_from_WT: basic 3-state linear chain", {
-    ## Hand-crafted 3-state chain: WT -> A -> AB (linear, no branching)
-    ## Transition probability matrix (embedded chain):
-    ##   WT  -> A with prob 1
-    ##   A   -> AB with prob 1
-    ##   AB  -> AB with prob 1  (absorbing, self-loop added by to_markovchain)
-    ## From WT: P(ever visit A)  = 1, P(ever visit AB) = 1
-    ## First-passage convention: h(WT, WT) = 0
-    mat <- matrix(0, nrow = 3, ncol = 3,
-                  dimnames = list(c("WT", "A", "AB"), c("WT", "A", "AB")))
-    mat["WT", "A"]  <- 1
-    mat["A",  "AB"] <- 1
-    ## AB is absorbing: row sums to 0, to_markovchain adds self-loop
+  ## Hand-crafted 3-state chain: WT -> A -> AB (linear, no branching)
+  ## Transition probability matrix (embedded chain):
+  ##   WT  -> A with prob 1
+  ##   A   -> AB with prob 1
+  ##   AB  -> AB with prob 1  (absorbing, self-loop added by to_markovchain)
+  ## From WT: P(ever visit A)  = 1, P(ever visit AB) = 1
+  ## First-passage convention: h(WT, WT) = 0
+  mat <- matrix(0, nrow = 3, ncol = 3,
+                dimnames = list(c("WT", "A", "AB"), c("WT", "A", "AB")))
+  mat["WT", "A"]  <- 1
+  mat["A",  "AB"] <- 1
+  ## AB is absorbing: row sums to 0, to_markovchain adds self-loop
 
-    hp <- hitting_probs_from_WT(mat)
+  hp <- hitting_probs_from_WT(mat)
 
-    expect_equal(hp[["WT"]], 0.0,   tolerance = 1e-10, label = "h(WT,WT)=0")
-    expect_equal(hp[["A"]],  1.0,   tolerance = 1e-10, label = "h(WT,A)=1")
-    expect_equal(hp[["AB"]], 1.0,   tolerance = 1e-10, label = "h(WT,AB)=1")
+  expect_equal(hp[["WT"]], 0.0,   tolerance = 1e-10, label = "h(WT,WT)=0")
+  expect_equal(hp[["A"]],  1.0,   tolerance = 1e-10, label = "h(WT,A)=1")
+  expect_equal(hp[["AB"]], 1.0,   tolerance = 1e-10, label = "h(WT,AB)=1")
 })
 
 
 test_that("hitting_probs_from_WT: MHN consistency with hittingProbabilities", {
-    ## For any MHN trans_mat, hitting_probs_from_WT should equal
-    ## the first row of hittingProbabilities(to_markovchain(trans_mat)).
-    ## State 1 (row 1) is always the WT genotype.
+  ## For any MHN trans_mat, hitting_probs_from_WT should equal
+  ## the first row of hittingProbabilities(to_markovchain(trans_mat)).
+  ## State 1 (row 1) is always the WT genotype.
 
   for (n_genes in c(3, 4, 5)) {
     emhn <- evamtools::random_evam(n_genes, model = "MHN")
@@ -328,9 +328,9 @@ test_that("hitting_probs_from_WT: MHN consistency with hittingProbabilities", {
 
 
 test_that("hitting_probs_from_WT: all values in [0,1], WT=0, absorbing=1", {
-    ## For a 3-gene MHN (all 8 genotypes):
-    ## - hitting probs are in [0, 1]
-    ## - WT has hitting prob 0 (first-passage convention)
+  ## For a 3-gene MHN (all 8 genotypes):
+  ## - hitting probs are in [0, 1]
+  ## - WT has hitting prob 0 (first-passage convention)
 
   for (i in 1:5) {
     emhn <- evamtools::random_evam(3, model = "MHN")
@@ -348,11 +348,11 @@ test_that("hitting_probs_from_WT: all values in [0,1], WT=0, absorbing=1", {
 
 
 test_that("hitting_probs_from_WT: inline row-scaling of rate mat agrees with trans_mat route", {
-    ## For MHN, MHN_trans_mat == row_normalized(MHN_trans_rate_mat).
-    ## hitting_probs_from_WT computed from MHN_trans_mat (CPM route) should
-    ## equal hitting_probs_from_WT computed from the inline row-scaled
-    ## MHN_trans_rate_mat (the fitness-landscape-style route).
-    ## This verifies the two routes are equivalent.
+  ## For MHN, MHN_trans_mat == row_normalized(MHN_trans_rate_mat).
+  ## hitting_probs_from_WT computed from MHN_trans_mat (CPM route) should
+  ## equal hitting_probs_from_WT computed from the inline row-scaled
+  ## MHN_trans_rate_mat (the fitness-landscape-style route).
+  ## This verifies the two routes are equivalent.
 
   for (i in 1:5) {
     emhn <- evamtools::random_evam(4, model = "MHN")
@@ -424,27 +424,27 @@ test_that("hitting_probs_from_WT: inline row-scaling of rate mat agrees with tra
 ##   HP(B)    = P(WT -> B)         = 0.4375
 ##   HP(A, B) = 1 (absorbing; both paths converge here).
 test_that("OT, branching Root->A, Root->B: trans_mat and HP from hand derivation", {
-    local_edition(3)
-    ot_branch <- data.frame(
-        From = c("Root", "Root"),
-        To   = c("A",    "B"),
-        OT_edgeWeight = c(0.9, 0.7))
-    out <- get_full_output(ot_branch)
+  local_edition(3)
+  ot_branch <- data.frame(
+    From = c("Root", "Root"),
+    To   = c("A",    "B"),
+    OT_edgeWeight = c(0.9, 0.7))
+  out <- get_full_output(ot_branch)
 
-    genots <- c("WT", "A", "B", "A, B")
-    expected_tm <- matrix(0, nrow = 4, ncol = 4,
-                          dimnames = list(genots, genots))
-    expected_tm["WT",   "A"]    <- 0.9 / 1.6
-    expected_tm["WT",   "B"]    <- 0.7 / 1.6
-    expected_tm["A",    "A, B"] <- 1.0
-    expected_tm["B",    "A, B"] <- 1.0
+  genots <- c("WT", "A", "B", "A, B")
+  expected_tm <- matrix(0, nrow = 4, ncol = 4,
+                        dimnames = list(genots, genots))
+  expected_tm["WT",   "A"]    <- 0.9 / 1.6
+  expected_tm["WT",   "B"]    <- 0.7 / 1.6
+  expected_tm["A",    "A, B"] <- 1.0
+  expected_tm["B",    "A, B"] <- 1.0
 
-    observed_tm <- as.matrix(out$OT_trans_mat)
-    expect_equal(observed_tm[genots, genots], expected_tm, tolerance = 1e-10)
+  observed_tm <- as.matrix(out$OT_trans_mat)
+  expect_equal(observed_tm[genots, genots], expected_tm, tolerance = 1e-10)
 
-    expected_hp <- c(WT = 0, A = 0.5625, B = 0.4375, "A, B" = 1.0)
-    expect_equal(out$OT_hitting_probs_from_WT[genots], expected_hp,
-                 tolerance = 1e-10)
+  expected_hp <- c(WT = 0, A = 0.5625, B = 0.4375, "A, B" = 1.0)
+  expect_equal(out$OT_hitting_probs_from_WT[genots], expected_hp,
+               tolerance = 1e-10)
 })
 
 
@@ -468,27 +468,27 @@ test_that("OT, branching Root->A, Root->B: trans_mat and HP from hand derivation
 ##   HP(A)    = 1   (deterministic single path WT -> A)
 ##   HP(A, B) = 1   (deterministic, absorbing).
 test_that("OT, chain Root->A->B: trans_mat and HP from hand derivation", {
-    local_edition(3)
-    ot_chain <- data.frame(
-        From = c("Root", "A"),
-        To   = c("A",    "B"),
-        OT_edgeWeight = c(0.9, 0.7))
-    out <- get_full_output(ot_chain)
+  local_edition(3)
+  ot_chain <- data.frame(
+    From = c("Root", "A"),
+    To   = c("A",    "B"),
+    OT_edgeWeight = c(0.9, 0.7))
+  out <- get_full_output(ot_chain)
 
-    genots <- c("WT", "A", "A, B")
-    expected_tm <- matrix(0, nrow = 3, ncol = 3,
-                          dimnames = list(genots, genots))
-    expected_tm["WT", "A"]    <- 1.0
-    expected_tm["A",  "A, B"] <- 1.0
+  genots <- c("WT", "A", "A, B")
+  expected_tm <- matrix(0, nrow = 3, ncol = 3,
+                        dimnames = list(genots, genots))
+  expected_tm["WT", "A"]    <- 1.0
+  expected_tm["A",  "A, B"] <- 1.0
 
-    observed_tm <- as.matrix(out$OT_trans_mat)
-    expect_equal(rownames(observed_tm), genots,
-                 label = "unreachable B excluded from matrix")
-    expect_equal(observed_tm[genots, genots], expected_tm, tolerance = 1e-10)
+  observed_tm <- as.matrix(out$OT_trans_mat)
+  expect_equal(rownames(observed_tm), genots,
+               label = "unreachable B excluded from matrix")
+  expect_equal(observed_tm[genots, genots], expected_tm, tolerance = 1e-10)
 
-    expected_hp <- c(WT = 0, A = 1.0, "A, B" = 1.0)
-    expect_equal(out$OT_hitting_probs_from_WT[genots], expected_hp,
-                 tolerance = 1e-10)
+  expected_hp <- c(WT = 0, A = 1.0, "A, B" = 1.0)
+  expect_equal(out$OT_hitting_probs_from_WT[genots], expected_hp,
+               tolerance = 1e-10)
 })
 
 
@@ -525,31 +525,31 @@ test_that("OT, chain Root->A->B: trans_mat and HP from hand derivation", {
 ##   HP(A, B)      = 1   (both paths converge: 5/9 + 4/9 = 1)
 ##   HP(A, B, C)   = 1   (absorbing).
 test_that("OncoBN AND (CBN-mode): trans_mat and HP from hand derivation", {
-    local_edition(3)
-    onc_and <- data.frame(
-        From  = c("Root", "Root", "A", "B"),
-        To    = c("A",    "B",    "C", "C"),
-        theta = c(0.5,    0.4,    0.3, 0.3),
-        Relation = c("Single", "Single", "AND", "AND"))
-    out <- suppressMessages(get_full_output(onc_and))
+  local_edition(3)
+  onc_and <- data.frame(
+    From  = c("Root", "Root", "A", "B"),
+    To    = c("A",    "B",    "C", "C"),
+    theta = c(0.5,    0.4,    0.3, 0.3),
+    Relation = c("Single", "Single", "AND", "AND"))
+  out <- suppressMessages(get_full_output(onc_and))
 
-    genots <- c("WT", "A", "B", "A, B", "A, B, C")
-    expected_tm <- matrix(0, nrow = 5, ncol = 5,
-                          dimnames = list(genots, genots))
-    expected_tm["WT",   "A"]       <- 5 / 9
-    expected_tm["WT",   "B"]       <- 4 / 9
-    expected_tm["A",    "A, B"]    <- 1.0
-    expected_tm["B",    "A, B"]    <- 1.0
-    expected_tm["A, B", "A, B, C"] <- 1.0
+  genots <- c("WT", "A", "B", "A, B", "A, B, C")
+  expected_tm <- matrix(0, nrow = 5, ncol = 5,
+                        dimnames = list(genots, genots))
+  expected_tm["WT",   "A"]       <- 5 / 9
+  expected_tm["WT",   "B"]       <- 4 / 9
+  expected_tm["A",    "A, B"]    <- 1.0
+  expected_tm["B",    "A, B"]    <- 1.0
+  expected_tm["A, B", "A, B, C"] <- 1.0
 
-    observed_tm <- as.matrix(out$OncoBN_trans_mat)
-    expect_equal(rownames(observed_tm), genots,
-                 label = "AND mode: only A, B-bearing C reachable")
-    expect_equal(observed_tm[genots, genots], expected_tm, tolerance = 1e-10)
+  observed_tm <- as.matrix(out$OncoBN_trans_mat)
+  expect_equal(rownames(observed_tm), genots,
+               label = "AND mode: only A, B-bearing C reachable")
+  expect_equal(observed_tm[genots, genots], expected_tm, tolerance = 1e-10)
 
-    expected_hp <- c(WT = 0, A = 5/9, B = 4/9, "A, B" = 1.0, "A, B, C" = 1.0)
-    expect_equal(out$OncoBN_hitting_probs_from_WT[genots], expected_hp,
-                 tolerance = 1e-10)
+  expected_hp <- c(WT = 0, A = 5/9, B = 4/9, "A, B" = 1.0, "A, B, C" = 1.0)
+  expect_equal(out$OncoBN_hitting_probs_from_WT[genots], expected_hp,
+               tolerance = 1e-10)
 })
 
 
@@ -603,41 +603,41 @@ test_that("OncoBN AND (CBN-mode): trans_mat and HP from hand derivation", {
 ##                  ( ~ 0.166667 )
 ##   HP(A, B, C)    = 1            (absorbing).
 test_that("OncoBN OR (DBN-mode): trans_mat and HP from hand derivation", {
-    local_edition(3)
-    onc_or <- data.frame(
-        From  = c("Root", "Root", "A", "B"),
-        To    = c("A",    "B",    "C", "C"),
-        theta = c(0.5,    0.4,    0.3, 0.3),
-        Relation = c("Single", "Single", "OR", "OR"))
-    out <- suppressMessages(get_full_output(onc_or))
+  local_edition(3)
+  onc_or <- data.frame(
+    From  = c("Root", "Root", "A", "B"),
+    To    = c("A",    "B",    "C", "C"),
+    theta = c(0.5,    0.4,    0.3, 0.3),
+    Relation = c("Single", "Single", "OR", "OR"))
+  out <- suppressMessages(get_full_output(onc_or))
 
-    genots <- c("WT", "A", "B", "A, B", "A, C", "B, C", "A, B, C")
-    expected_tm <- matrix(0, nrow = 7, ncol = 7,
-                          dimnames = list(genots, genots))
-    expected_tm["WT",   "A"]       <- 5 / 9
-    expected_tm["WT",   "B"]       <- 4 / 9
-    expected_tm["A",    "A, B"]    <- 4 / 7
-    expected_tm["A",    "A, C"]    <- 3 / 7
-    expected_tm["B",    "A, B"]    <- 5 / 8
-    expected_tm["B",    "B, C"]    <- 3 / 8
-    expected_tm["A, B", "A, B, C"] <- 1.0
-    expected_tm["A, C", "A, B, C"] <- 1.0
-    expected_tm["B, C", "A, B, C"] <- 1.0
+  genots <- c("WT", "A", "B", "A, B", "A, C", "B, C", "A, B, C")
+  expected_tm <- matrix(0, nrow = 7, ncol = 7,
+                        dimnames = list(genots, genots))
+  expected_tm["WT",   "A"]       <- 5 / 9
+  expected_tm["WT",   "B"]       <- 4 / 9
+  expected_tm["A",    "A, B"]    <- 4 / 7
+  expected_tm["A",    "A, C"]    <- 3 / 7
+  expected_tm["B",    "A, B"]    <- 5 / 8
+  expected_tm["B",    "B, C"]    <- 3 / 8
+  expected_tm["A, B", "A, B, C"] <- 1.0
+  expected_tm["A, C", "A, B, C"] <- 1.0
+  expected_tm["B, C", "A, B, C"] <- 1.0
 
-    observed_tm <- as.matrix(out$OncoBN_trans_mat)
-    expect_equal(sort(rownames(observed_tm)), sort(genots),
-                 label = "OR mode: A, C and B, C reachable")
-    expect_equal(observed_tm[genots, genots], expected_tm, tolerance = 1e-10)
+  observed_tm <- as.matrix(out$OncoBN_trans_mat)
+  expect_equal(sort(rownames(observed_tm)), sort(genots),
+               label = "OR mode: A, C and B, C reachable")
+  expect_equal(observed_tm[genots, genots], expected_tm, tolerance = 1e-10)
 
-    expected_hp <- c(WT      = 0,
-                     A       = 5/9,
-                     B       = 4/9,
-                     "A, B"  = 25/42,
-                     "A, C"  = 5/21,
-                     "B, C"  = 1/6,
-                     "A, B, C" = 1.0)
-    expect_equal(out$OncoBN_hitting_probs_from_WT[genots], expected_hp,
-                 tolerance = 1e-10)
+  expected_hp <- c(WT      = 0,
+                   A       = 5/9,
+                   B       = 4/9,
+                   "A, B"  = 25/42,
+                   "A, C"  = 5/21,
+                   "B, C"  = 1/6,
+                   "A, B, C" = 1.0)
+  expect_equal(out$OncoBN_hitting_probs_from_WT[genots], expected_hp,
+               tolerance = 1e-10)
 })
 
 

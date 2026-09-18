@@ -1,19 +1,34 @@
 ## Copyright 2022 Ramon Diaz-Uriarte
 
-## This program is free software: you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License (AGPLv3.0) as published by
-## the Free Software Foundation, either version 3 of the License, or (at your
-## option) any later version.
+## This program is free software: you can redistribute it and/or modify it
+## under the terms of the GNU Affero General Public License (AGPLv3.0) as
+## published by the Free Software Foundation, either version 3 of the
+## License, or (at your option) any later version.
 
 ## This program is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Affero General Public License for more details.
 
-## You should have received a copy of the GNU Affero General Public License along
-## with this program.  If not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 ## options(intervention_every_gene_cores = parallel::detectCores())
+## markovchain, Armadillo/BLAS solve, and genots_from_trm, etc,
+## can be multithreaded and we are using mclapply with detectCores()
+## The Sys.setenv call will affect programs called from R via system()
+## or system2(). But this won't affect the BLAS loaded when R starts
+## and to limit those threads we use RhpcBLASctl.
+Sys.setenv(OMP_NUM_THREADS = "1",
+           OPENBLAS_NUM_THREADS = "1",
+           MKL_NUM_THREADS = "1")
+if (requireNamespace("RhpcBLASctl", quietly = TRUE)) {
+  RhpcBLASctl::blas_set_num_threads(1)
+  RhpcBLASctl::omp_set_num_threads(1)
+} else {
+  message("RhpcBLASctl not installed: BLAS/OpenMP threads not limited")
+}
+
 library(testthat)
 pwd <- getwd()
 setwd("../")
@@ -38,98 +53,98 @@ local({
     ## For all models, you can do this, to see examples
     ## This requires evamtools to work.
 
-    if (require(evamtools)) {
-        rcbn <- evamtools::random_evam(7, model = "CBN")
-        rot <- evamtools::random_evam(7, model = "OT", ot_oncobn_epos = 0)
-        rdbn_d <- evamtools::random_evam(7, model = "OncoBN", ot_oncobn_epos = 0,
-                                         oncobn_model = "DBN")
-        rdbn_c <- evamtools::random_evam(7, model = "OncoBN", ot_oncobn_epos = 0,
-                                         oncobn_model = "CBN")
-        rmhn <- evamtools::random_evam(7, model = "MHN")
-        rhes <- evamtools::random_evam(7, model = "HESBCN")
+  if (require(evamtools)) {
+    rcbn <- evamtools::random_evam(7, model = "CBN")
+    rot <- evamtools::random_evam(7, model = "OT", ot_oncobn_epos = 0)
+    rdbn_d <- evamtools::random_evam(7, model = "OncoBN", ot_oncobn_epos = 0,
+                                     oncobn_model = "DBN")
+    rdbn_c <- evamtools::random_evam(7, model = "OncoBN", ot_oncobn_epos = 0,
+                                     oncobn_model = "CBN")
+    rmhn <- evamtools::random_evam(7, model = "MHN")
+    rhes <- evamtools::random_evam(7, model = "HESBCN")
     }
     ## But, below, I create the basic objects by hand.
 
 
 #### MHN
     ## Define model: the log-Theta matrix.
-    t1 <- matrix(runif(36, -4, 4), ncol = 6)
-    colnames(t1) <- rownames(t1) <- LETTERS[1:6]
+  t1 <- matrix(runif(36, -4, 4), ncol = 6)
+  colnames(t1) <- rownames(t1) <- LETTERS[1:6]
 
-    ## Kill a gene
-    t1b <- kill_gene(t1, "B")
-    ## Obtain standard, full output
-    t1bo <- get_full_output(t1b)
+  ## Kill a gene
+  t1b <- kill_gene(t1, "B")
+  ## Obtain standard, full output
+  t1bo <- get_full_output(t1b)
 
-    ## Population at some fixed time, e.g., t = 2
-    genots_at_t_from_trm(t1bo$MHN_trans_rate_mat, 2)
-
-
-
-#### CBN
-    ## Define model
-    m1 <- data.frame(From = c("Root", "Root", "B", "B", "C", "C"),
-                     To   = c("A",    "B",    "C", "D",  "E", "F"),
-                     rerun_lambda = 1:6)
-    ## Kill a gene
-    m1c <- kill_gene(m1, "C")
-    ## Obtain standard, full output
-    m1co <- get_full_output(m1c)
-    ## Sample at some other time, e.g., t = 2
-    genots_at_t_from_trm(m1co$CBN_trans_rate_mat, 2)
+  ## Population at some fixed time, e.g., t = 2
+  genots_at_t_from_trm(t1bo$MHN_trans_rate_mat, 2)
 
 
 
-#### HESBCN
-    ## Define model
-    m3x <- data.frame(
-        From = c("Root", "Root", "Root", "A", "B", "D", "C", "E"),
-        To =   c("A",    "B",    "D",    "C", "C", "E", "E", "F"),
-        Lambdas = c(1, 2, 3, 4, 4, 5, 5, 6),
-        Relation = c(rep("Single", 3), "AND", "AND", "XOR", "XOR", "Single"))
-    ## Kill a gene
-    m3xc <- kill_gene(m3x, "C")
-    ## Obtain standard, full output
-    m3xco <- get_full_output(m3xc)
-    ## Sample at some other time, e.g., t = 2
-    genots_at_t_from_trm(m3xco$HESBCN_trans_rate_mat, 2)
+  #### CBN
+  ## Define model
+  m1 <- data.frame(From = c("Root", "Root", "B", "B", "C", "C"),
+                   To   = c("A",    "B",    "C", "D",  "E", "F"),
+                   rerun_lambda = 1:6)
+  ## Kill a gene
+  m1c <- kill_gene(m1, "C")
+  ## Obtain standard, full output
+  m1co <- get_full_output(m1c)
+  ## Sample at some other time, e.g., t = 2
+  genots_at_t_from_trm(m1co$CBN_trans_rate_mat, 2)
 
 
-####  For OT and OncoBN we cannot get predicted at a given time.
-    ##      And we need evamtools and other stuff
-    if (require(evamtools)) {
-###### OT
-        require(Oncotree)
-        motc <- kill_gene(rot$OT_model, "C")
-        motco <- get_full_output(motc)
-        motco$OT_predicted_genotype_freqs
-        rot$OT_predicted_genotype_freqs
 
-###### OncoBN
+  #### HESBCN
+  ## Define model
+  m3x <- data.frame(
+    From = c("Root", "Root", "Root", "A", "B", "D", "C", "E"),
+    To =   c("A",    "B",    "D",    "C", "C", "E", "E", "F"),
+    Lambdas = c(1, 2, 3, 4, 4, 5, 5, 6),
+    Relation = c(rep("Single", 3), "AND", "AND", "XOR", "XOR", "Single"))
+  ## Kill a gene
+  m3xc <- kill_gene(m3x, "C")
+  ## Obtain standard, full output
+  m3xco <- get_full_output(m3xc)
+  ## Sample at some other time, e.g., t = 2
+  genots_at_t_from_trm(m3xco$HESBCN_trans_rate_mat, 2)
 
-        mdbc <- kill_gene(rdbn_d$OncoBN_model, "C")
-        mdbco <- get_full_output(mdbc)
-        mdbco$OncoBN_predicted_genotype_freqs
-        rdbn_d$OncoBN_predicted_genotype_freqs
-    }
 
-#### HyperHMM
+  ####  For OT and OncoBN we cannot get predicted at a given time.
+  ##      And we need evamtools and other stuff
+  if (require(evamtools)) {
+    ###### OT
+    require(Oncotree)
+    motc <- kill_gene(rot$OT_model, "C")
+    motco <- get_full_output(motc)
+    motco$OT_predicted_genotype_freqs
+    rot$OT_predicted_genotype_freqs
 
-    hm1 <- Matrix(0, nrow = 8, ncol = 8, sparse = TRUE)
-    colnames(hm1) <- rownames(hm1) <- allGenotypesLetter(3)
-    hm1[1, 2:4] <- c(0.1, 0.2, 0.7)
-    hm1[2, 5:6] <- c(0.6, 0.4)
-    hm1[3, c(5, 7)] <- c(0.2, 0.8)
-    hm1[4, 6:7] <- c(0.1, 0.9)
-    hm1[5:7, 8] <- 1
-    attr(hm1, "method_output") <- "HyperHMM_trans_mat"
-    attr(hm1, "num_prob.set") <- c(0.1, 0.2, 0.3, 0.4)
-    attr(hm1, "num_features") <- 3
+    ###### OncoBN
 
-    ## Kill gene A
-    hm1_A <- kill_gene(hm1, "A")
-    ## Standard output
-    hm1_bo <- get_full_output(hm1_A)
+    mdbc <- kill_gene(rdbn_d$OncoBN_model, "C")
+    mdbco <- get_full_output(mdbc)
+    mdbco$OncoBN_predicted_genotype_freqs
+    rdbn_d$OncoBN_predicted_genotype_freqs
+  }
+
+  #### HyperHMM
+
+  hm1 <- Matrix(0, nrow = 8, ncol = 8, sparse = TRUE)
+  colnames(hm1) <- rownames(hm1) <- allGenotypesLetter(3)
+  hm1[1, 2:4] <- c(0.1, 0.2, 0.7)
+  hm1[2, 5:6] <- c(0.6, 0.4)
+  hm1[3, c(5, 7)] <- c(0.2, 0.8)
+  hm1[4, 6:7] <- c(0.1, 0.9)
+  hm1[5:7, 8] <- 1
+  attr(hm1, "method_output") <- "HyperHMM_trans_mat"
+  attr(hm1, "num_prob.set") <- c(0.1, 0.2, 0.3, 0.4)
+  attr(hm1, "num_features") <- 3
+
+  ## Kill gene A
+  hm1_A <- kill_gene(hm1, "A")
+  ## Standard output
+  hm1_bo <- get_full_output(hm1_A)
 
 })
 
@@ -138,44 +153,44 @@ local({
 ### Miscell tests, unreachable destinations, and fixing the first issue
 
 test_that("We catch models that are just plainly wrong", {
-    ## This is unnecessary. These models are just wrong.
-    ## The sort of thing that someone who does not understand
-    ## them could create, but that evamtools would never give.
-    ## What is wrong? The same child node has different lambda
+  ## This is unnecessary. These models are just wrong.
+  ## The sort of thing that someone who does not understand
+  ## them could create, but that evamtools would never give.
+  ## What is wrong? The same child node has different lambda
 
-    m1 <- data.frame(From = c("Root", "Root", "A", "A", "B", "B"),
-                     To   = c("A", "B", "C", "E", "E", "F"),
-                     rerun_lambda = 1:6)
+  m1 <- data.frame(From = c("Root", "Root", "A", "A", "B", "B"),
+                   To   = c("A", "B", "C", "E", "E", "F"),
+                   rerun_lambda = 1:6)
 
-    m4 <- data.frame(From = c("Root", "Root", "E", "E", "B", "B", "C", "D"),
-                     To = c("E", "B", "C", "D", "C", "D", "A", "A"),
-                     Lambdas = 1:8,
-                     Relation = c("Single", "Single", "And", "And", "And", "And", "OR", "OR"))
+  m4 <- data.frame(From = c("Root", "Root", "E", "E", "B", "B", "C", "D"),
+                   To = c("E", "B", "C", "D", "C", "D", "A", "A"),
+                   Lambdas = 1:8,
+                   Relation = c("Single", "Single", "And", "And", "And", "And", "OR", "OR"))
 
-    for (gg in LETTERS[1:6]) {
-        expect_error(kill_gene(m1, gg),
-                     "Different lambda/weight for same destination gene")
-    }
-    ## Unless we use mc.cores= 1, the error is in mclapply and testthat
-    ## complains
-    expect_error(intervene_cpm_every_gene(list(CBN_model = m1), "CBN",
-                                          mc.cores = 1),
+  for (gg in LETTERS[1:6]) {
+    expect_error(kill_gene(m1, gg),
                  "Different lambda/weight for same destination gene")
+  }
+  ## Unless we use mc.cores= 1, the error is in mclapply and testthat
+  ## complains
+  expect_error(intervene_cpm_every_gene(list(CBN_model = m1), "CBN",
+                                        mc.cores = 1),
+               "Different lambda/weight for same destination gene")
 
-    for (gg in LETTERS[1:5]) {
-        expect_error(kill_gene(m4, gg),
-                     "Different lambda/weight for same destination gene")
-    }
-
-    expect_error(intervene_cpm_every_gene(list(HESBCN_model = m4), "HESBCN",
-                                          mc.cores = 1),
+  for (gg in LETTERS[1:5]) {
+    expect_error(kill_gene(m4, gg),
                  "Different lambda/weight for same destination gene")
+  }
 
-    expect_error(get_full_output(m1),
-                 "Different lambda/weight for same destination gene.")
+  expect_error(intervene_cpm_every_gene(list(HESBCN_model = m4), "HESBCN",
+                                        mc.cores = 1),
+               "Different lambda/weight for same destination gene")
 
-    expect_error(get_full_output(m4),
-                 "Different lambda/weight for same destination gene.")
+  expect_error(get_full_output(m1),
+               "Different lambda/weight for same destination gene.")
+
+  expect_error(get_full_output(m4),
+               "Different lambda/weight for same destination gene.")
 })
 
 #### Explaining the warning about unreachable destinations
@@ -213,57 +228,57 @@ test_that("Explaining the warning about unreachable destinations", {
   local({
     ## Modified for get_genotype_freqs_cpm, for demonstration
     gg2 <- function(model, t = NA) {
-        if (nrow(model) == 0) return(c(WT = 1))
+      if (nrow(model) == 0) return(c(WT = 1))
 
-        ## Find out the method
-        if (is.matrix(model) &&
+      ## Find out the method
+      if (is.matrix(model) &&
             (all(colnames(model) == rownames(model))) &&
             is.numeric(model)) {
-            method <- "MHN"
-        } else if (is.data.frame(model) &&
+        method <- "MHN"
+      } else if (is.data.frame(model) &&
                    ("From" %in% colnames(model)) &&
                    ("To" %in% colnames(model))) {
-            if ("Relation" %in% colnames(model)) {
-                if ("theta" %in% colnames(model)) {
-                    method <- "OncoBN"
-                } else if ("Lambdas" %in% colnames(model))  {
-                    method <- "HESBCN"
-                } else {
-                    stop("Model structure not recognized")
-                }
-            } else {
-                if ("OT_edgeWeight" %in% colnames(model)) {
-                    method <- "OT"
-                } else if ("rerun_lambda" %in% colnames(model)) {
-                    method <- "CBN"
-                } else {
-                    stop("Model structure not recognized")
-                }
-            }
+        if ("Relation" %in% colnames(model)) {
+          if ("theta" %in% colnames(model)) {
+            method <- "OncoBN"
+          } else if ("Lambdas" %in% colnames(model))  {
+            method <- "HESBCN"
+          } else {
+            stop("Model structure not recognized")
+          }
         } else {
-            stop("unrecognized structure")
+          if ("OT_edgeWeight" %in% colnames(model)) {
+            method <- "OT"
+          } else if ("rerun_lambda" %in% colnames(model)) {
+            method <- "CBN"
+          } else {
+            stop("Model structure not recognized")
+          }
         }
+      } else {
+        stop("unrecognized structure")
+      }
 
-        if (nrow(model) == 1 &&
+      if (nrow(model) == 1 &&
             method %in% c("OT", "OncoBN")) {
-            mut_gene <- model[1, 2]
-            freq_mut <- model[1, ifelse(method == "OT", "OT_edgeWeight", "theta")]
-            freqs <- c(1 - freq_mut, freq_mut)
-            names(freqs) <- c("WT", mut_gene)
-            return(freqs)
-        }
+        mut_gene <- model[1, 2]
+        freq_mut <- model[1, ifelse(method == "OT", "OT_edgeWeight", "theta")]
+        freqs <- c(1 - freq_mut, freq_mut)
+        names(freqs) <- c("WT", mut_gene)
+        return(freqs)
+      }
 
-        output <- get_full_output(model)
-        if (method %in% c("OT", "OncoBN")) {
-            return(list(
-                all_out = output,
-                pred_genots = output[[paste0(method, "_predicted_genotype_freqs")]]))
-        }
-        ## CBN, MHN, HESBCN
-        trans_name <- paste0(method, "_trans_rate_mat")
-        trans_rate_mat <- output[[trans_name]]
-        return(list(all_out = output,
-                    pred_genots = genots_from_trm(trans_rate_mat, t = t)))
+      output <- get_full_output(model)
+      if (method %in% c("OT", "OncoBN")) {
+        return(list(
+          all_out = output,
+          pred_genots = output[[paste0(method, "_predicted_genotype_freqs")]]))
+      }
+      ## CBN, MHN, HESBCN
+      trans_name <- paste0(method, "_trans_rate_mat")
+      trans_rate_mat <- output[[trans_name]]
+      return(list(all_out = output,
+                  pred_genots = genots_from_trm(trans_rate_mat, t = t)))
     }
 
 
@@ -360,30 +375,30 @@ test_that("Explaining the warning about unreachable destinations", {
 #### Issue 1: https://github.com/rdiaz02/interv-CPM/issues/1
 
 test_that("Issue 1 is solved", {
-    ##  There are additional tests of issue in kill-gene-equivalences-TESTS.R
+  ##  There are additional tests of issue in kill-gene-equivalences-TESTS.R
 
-    ## Note that get_genotype_freqs_cpm already
-    ## dealt with this case OK. It was get_full_output
-    ## that didn't (get_genotype_freqs_cpm sidestepped
-    ## calling get_full_output with single gene models and
-    ## assumed epos = 0).
-    ## And we also verify the "setting params to 0" works
+  ## Note that get_genotype_freqs_cpm already
+  ## dealt with this case OK. It was get_full_output
+  ## that didn't (get_genotype_freqs_cpm sidestepped
+  ## calling get_full_output with single gene models and
+  ## assumed epos = 0).
+  ## And we also verify the "setting params to 0" works
 
 
   #### Generating models with a single gene fails. This is expected,
-    ## and there is no reason to allow these things, at least not now.
+  ## and there is no reason to allow these things, at least not now.
 
-    expect_error(random_evam(1, model = "CBN"))
-    expect_error(random_evam(1, model = "HESBCN"))
-    expect_error(random_evam(1, model = "MHN"))
-    expect_error(random_evam(1, model =  "OncoBN"))
-    expect_error(random_evam(1, model =  "OT"))
+  expect_error(random_evam(1, model = "CBN"))
+  expect_error(random_evam(1, model = "HESBCN"))
+  expect_error(random_evam(1, model = "MHN"))
+  expect_error(random_evam(1, model =  "OncoBN"))
+  expect_error(random_evam(1, model =  "OT"))
 
-    set.seed(NULL)
+  set.seed(NULL)
 
   #### 2-gene models, where we kill one gene
-    ## CBN and H-ESBCN work just fine
-    (random_CBN <- random_evam(2, model = "CBN")$CBN_model)
+  ## CBN and H-ESBCN work just fine
+  (random_CBN <- random_evam(2, model = "CBN")$CBN_model)
   (one_gene_CBN <- suppressWarnings(kill_gene(random_CBN, "B")))
   o1 <- suppressWarnings(get_full_output(one_gene_CBN))
     o1$CBN_predicted_genotype_freqs

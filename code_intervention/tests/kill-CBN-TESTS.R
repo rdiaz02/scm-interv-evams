@@ -1,17 +1,17 @@
 ## Copyright 2022 Ramon Diaz-Uriarte
 
-## This program is free software: you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License (AGPLv3.0) as published by
-## the Free Software Foundation, either version 3 of the License, or (at your
-## option) any later version.
+## This program is free software: you can redistribute it and/or modify it
+## under the terms of the GNU Affero General Public License (AGPLv3.0) as
+## published by the Free Software Foundation, either version 3 of the
+## License, or (at your option) any later version.
 
 ## This program is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Affero General Public License for more details.
 
-## You should have received a copy of the GNU Affero General Public License along
-## with this program.  If not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 ### What this is
@@ -27,9 +27,11 @@
 ## For each model, four procedures are compared:
 ##   1. Standard kill_gene (modifies DAG edges)
 ##   2. kill_gene_by_params_to_0 (zeroes parameters)
-##   3. intervene_cpm_trm_rm_every_gene (removes genotypes from pre-computed TRM;
-##      does NOT call get_full_output for the intervention step)
-##   4. intervene_fitness_landscape_every_gene (fitness landscape derived from model)
+##   3. intervene_cpm_trm_rm_every_gene (removes genotypes from
+##      pre-computed TRM; does NOT call get_full_output for the
+##      intervention step)
+##   4. intervene_fitness_landscape_every_gene (fitness landscape derived
+##   from model)
 ##
 ##   Having shown all 4 are identical, we then check
 ##   (Full ground truth sections)  that manual
@@ -43,9 +45,9 @@
 ## This makes these tests a genuine independent check.
 ##
 ## Gene names in each DAG are sequential from A (sorted alphabetically from
-## the original names used when designing the DAG topology). A is intentionally
-## NOT the first structural gene or a root gene in most DAGs, so gene-name
-## ordering is not trivially sequential.
+## the original names used when designing the DAG topology). A is
+## intentionally NOT the first structural gene or a root gene in most DAGs,
+## so gene-name ordering is not trivially sequential.
 ##
 
 
@@ -130,12 +132,18 @@ test_that("Simple CBN checks of structure (standard) killing and equiv of proced
 
   preds_from_model <- function(x) {
     if (nrow(x) == 0) {
-      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
     tmp <- suppressWarnings(get_full_output(x))
     f <- tmp$CBN_predicted_genotype_freqs
     hp <- tmp$CBN_hitting_probs_from_WT
-    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
   }
 
   m1_int <- intervene_cpm_every_gene(list(CBN_model = m1), "CBN")
@@ -239,21 +247,21 @@ test_that("Simple CBN checks of structure (standard) killing and equiv of proced
 ##                     A (4 parents: D,G,J,B)
 ## Root genes: F, D, G, J, B
 DAG_2 <- data.frame(
-    From = c("Root", "Root", "Root", "Root", "Root",
-             "F", "D", "G", "J", "B",
-             "F", "D", "G", "J", "B",
-             "D", "G", "J", "B",
-             "H", "H"),
-    To = c("F", "D", "G", "J", "B",
-           rep("H", 5),
-           rep("I", 5),
-           rep("A", 4),
-           "C", "E"),
-    rerun_lambda = c(2, 1, .5, .35, .8,
-                     2.7, 2.7, 2.7, 2.7, 2.7,
-                     1.4, 1.4, 1.4, 1.4, 1.4,
-                     0.6, 0.6, 0.6, 0.6,
-                     0.9, 2.6))
+  From = c("Root", "Root", "Root", "Root", "Root",
+           "F", "D", "G", "J", "B",
+           "F", "D", "G", "J", "B",
+           "D", "G", "J", "B",
+           "H", "H"),
+  To = c("F", "D", "G", "J", "B",
+         rep("H", 5),
+         rep("I", 5),
+         rep("A", 4),
+         "C", "E"),
+  rerun_lambda = c(2, 1, .5, .35, .8,
+                   2.7, 2.7, 2.7, 2.7, 2.7,
+                   1.4, 1.4, 1.4, 1.4, 1.4,
+                   0.6, 0.6, 0.6, 0.6,
+                   0.9, 2.6))
 
 ## DAG_3: 9 genes (A-I)
 ## Multi-parent node: C (4 parents: H,B,F,D)
@@ -270,15 +278,15 @@ DAG_3 <- data.frame(
 ##                     H (2 parents: I,G)
 ## Root genes: C, A, B, I
 DAG_4 <- data.frame(
-    From = c("Root", "Root", "Root", "Root",
-             "C", "C", "A", "B", "B", "I",
-             "F", "E", "D", "G"),
-    To   = c("C", "A", "B", "I",
-             "F", "E", "E", "E", "D", "H",
-             "G", "G", "G", "H"),
-    rerun_lambda = c(.8, 2, .35, .4,
-                     .5, 1, 1, 1, .6, .9,
-                     .7, .7, .7, .9)
+  From = c("Root", "Root", "Root", "Root",
+           "C", "C", "A", "B", "B", "I",
+           "F", "E", "D", "G"),
+  To   = c("C", "A", "B", "I",
+           "F", "E", "E", "E", "D", "H",
+           "G", "G", "G", "H"),
+  rerun_lambda = c(.8, 2, .35, .4,
+                   .5, 1, 1, 1, .6, .9,
+                   .7, .7, .7, .9)
 )
 
 ## DAG_5: 9 genes (A-I)
@@ -287,15 +295,15 @@ DAG_4 <- data.frame(
 ##                     B (2 parents: E,D)
 ## Root genes: A, F, G, I
 DAG_5 <- data.frame(
-    From = c("Root", "Root", "Root", "Root",
-             "A", "F", "G", "I",
-             "A", "F", "G",
-             "C", "D", "E", "D"),
-    To = c("A", "F", "G", "I",
-           "C", "C", "C", "C",
-           "D", "D", "D",
-           "E", "H", "B", "B"),
-    rerun_lambda = c(2, .7, .8, .10, .4, .4, .4, .4, .5, .5, .5, .6, .9, 2.3, 2.3)
+  From = c("Root", "Root", "Root", "Root",
+           "A", "F", "G", "I",
+           "A", "F", "G",
+           "C", "D", "E", "D"),
+  To = c("A", "F", "G", "I",
+         "C", "C", "C", "C",
+         "D", "D", "D",
+         "E", "H", "B", "B"),
+  rerun_lambda = c(2, .7, .8, .10, .4, .4, .4, .4, .5, .5, .5, .6, .9, 2.3, 2.3)
 )
 
 ## DAG_6: 7 genes (A-G)
@@ -304,9 +312,9 @@ DAG_5 <- data.frame(
 ##                     E (2 parents: A,B)
 ## Root genes: C, D, F, G
 DAG_6 <- data.frame(
-    From = c(rep("Root", 4),     "C", "D", "F", "G", "A", "B"),
-    To   = c("C", "D", "F", "G", "A", "A", "B", "B", "E", "E"),
-    rerun_lambda = c(1, 2, 2.3, .4, .5, .5, .6, .6, .7, .7)
+  From = c(rep("Root", 4),     "C", "D", "F", "G", "A", "B"),
+  To   = c("C", "D", "F", "G", "A", "A", "B", "B", "E", "E"),
+  rerun_lambda = c(1, 2, 2.3, .4, .5, .5, .6, .6, .7, .7)
 )
 
 ## DAG_7: 6 genes (A-F)
@@ -315,9 +323,9 @@ DAG_6 <- data.frame(
 ##                     E (2 parents: A,B)
 ## Root genes: C, D, F
 DAG_7 <- data.frame(
-    From = c(rep("Root", 3),   "C", "D", "F", "D", "F", "A", "B"),
-    To   = c("C", "D", "F",    "A", "A", "A", "B", "B", "E", "E"),
-    rerun_lambda = c(1, 2, 2.3, .4, .4, .4, .5, .5, .6, .6)
+  From = c(rep("Root", 3),   "C", "D", "F", "D", "F", "A", "B"),
+  To   = c("C", "D", "F",    "A", "A", "A", "B", "B", "E", "E"),
+  rerun_lambda = c(1, 2, 2.3, .4, .4, .4, .5, .5, .6, .6)
 )
 
 ## You can get an idea of what they look like by doing
@@ -343,57 +351,57 @@ set.seed(NULL)
 ## a_cpm_2_si = 0.006 as for CBN/HESBCN in generate_f_landscape.
 ## c = 1/0.006 as used in generate_n_f_landscape_requir.
 cbn_to_landscape_obj <- function(model, n_genes) {
-    a_cpm_2_si <- 0.006
-    genot_fitness <- ev2_cpm_to_fitness_genots(model, a = a_cpm_2_si)
-    ## Newer OncoSimulR uses "Birth"; older uses "Fitness"
-    fitness_col <- ifelse("Birth" %in% colnames(genot_fitness), "Birth", "Fitness")
-    rfo <- cbind(genots_to_bin(genot_fitness$Genotype, n_genes),
-                 Fitness = genot_fitness[[fitness_col]])
-    rfo <- rfo[rfo[, "Fitness"] > 0, ]
-    class(rfo) <- c("matrix", "array")
-    trm_and_c <- suppressMessages(get_scaled_trm_adaptive(rfo, c = 1/a_cpm_2_si))
-    list(fitness_landscape = rfo,
-         c = trm_and_c$c,
-         trm_scaled = trm_and_c$trm_scaled)
+  a_cpm_2_si <- 0.006
+  genot_fitness <- ev2_cpm_to_fitness_genots(model, a = a_cpm_2_si)
+  ## Newer OncoSimulR uses "Birth"; older uses "Fitness"
+  fitness_col <- ifelse("Birth" %in% colnames(genot_fitness), "Birth", "Fitness")
+  rfo <- cbind(genots_to_bin(genot_fitness$Genotype, n_genes),
+               Fitness = genot_fitness[[fitness_col]])
+  rfo <- rfo[rfo[, "Fitness"] > 0, ]
+  class(rfo) <- c("matrix", "array")
+  trm_and_c <- suppressMessages(get_scaled_trm_adaptive(rfo, c = 1/a_cpm_2_si))
+  list(fitness_landscape = rfo,
+       c = trm_and_c$c,
+       trm_scaled = trm_and_c$trm_scaled)
 }
 
 ## CBN model data frame (with rerun_lambda column) ->
 ##   run four procedures + row-permuted model and assert all equal.
 ## Genes must be named sequentially A, B, C, ... (no gaps).
 check_cbn_four_procedures <- function(model, label = "") {
-    m <- model
-    n <- length(setdiff(unique(c(m$From, m$To)), "Root"))
-    cat("\n CBN", if (nchar(label) > 0) label else "", ": n =", n, "genes\n")
+  m <- model
+  n <- length(setdiff(unique(c(m$From, m$To)), "Root"))
+  cat("\n CBN", if (nchar(label) > 0) label else "", ": n =", n, "genes\n")
 
-    ## Procedure 1: standard kill_gene via DAG edge removal
-    i1 <- intervene_cpm_every_gene(list(CBN_model = m), "CBN")
+  ## Procedure 1: standard kill_gene via DAG edge removal
+  i1 <- intervene_cpm_every_gene(list(CBN_model = m), "CBN")
 
-    ## Procedure 2: kill by setting parameters to 0
-    i2 <- suppressWarnings(
-        intervene_cpm_every_gene(list(CBN_model = m), "CBN",
-                                 kill_gene_funct = kill_gene_by_params_to_0))
+  ## Procedure 2: kill by setting parameters to 0
+  i2 <- suppressWarnings(
+    intervene_cpm_every_gene(list(CBN_model = m), "CBN",
+                             kill_gene_funct = kill_gene_by_params_to_0))
 
-    ## Procedure 3: remove genotypes from pre-computed TRM.
-    ## Requires a list with CBN_model and CBN_trans_rate_mat.
-    ## get_full_output provides the trans_rate_mat; we add CBN_model
-    ## explicitly (in case CBN_model_2_output does not include it).
-    full_out <- suppressWarnings(get_full_output(m))
-    full_out$CBN_model <- m
-    i3 <- intervene_cpm_trm_rm_every_gene(full_out, "CBN")
+  ## Procedure 3: remove genotypes from pre-computed TRM.
+  ## Requires a list with CBN_model and CBN_trans_rate_mat.
+  ## get_full_output provides the trans_rate_mat; we add CBN_model
+  ## explicitly (in case CBN_model_2_output does not include it).
+  full_out <- suppressWarnings(get_full_output(m))
+  full_out$CBN_model <- m
+  i3 <- intervene_cpm_trm_rm_every_gene(full_out, "CBN")
 
-    ## Procedure 4: fitness landscape derived from model.
-    landscape_obj <- cbn_to_landscape_obj(m, n)
-    i4 <- intervene_fitness_landscape_every_gene(landscape_obj)
+  ## Procedure 4: fitness landscape derived from model.
+  landscape_obj <- cbn_to_landscape_obj(m, n)
+  i4 <- intervene_fitness_landscape_every_gene(landscape_obj)
 
-    ## Procedure 1 with row-permuted model (order must not matter)
-    m_perm <- m[sample(1:nrow(m)), ]
-    i1_perm <- intervene_cpm_every_gene(list(CBN_model = m_perm), "CBN")
+  ## Procedure 1 with row-permuted model (order must not matter)
+  m_perm <- m[sample(1:nrow(m)), ]
+  i1_perm <- intervene_cpm_every_gene(list(CBN_model = m_perm), "CBN")
 
-    lbl <- if (nchar(label) > 0) paste0(" [", label, "]") else ""
-    expect_equal(i1, i2, label = paste0("i1 vs i2", lbl))
-    expect_equal(i1, i3, label = paste0("i1 vs i3", lbl))
-    expect_equal(i1, i4, label = paste0("i1 vs i4", lbl))
-    expect_equal(i1, i1_perm, label = paste0("i1 vs i1_perm", lbl))
+  lbl <- if (nchar(label) > 0) paste0(" [", label, "]") else ""
+  expect_equal(i1, i2, label = paste0("i1 vs i2", lbl))
+  expect_equal(i1, i3, label = paste0("i1 vs i3", lbl))
+  expect_equal(i1, i4, label = paste0("i1 vs i4", lbl))
+  expect_equal(i1, i1_perm, label = paste0("i1 vs i1_perm", lbl))
 }
 
 
@@ -408,33 +416,33 @@ check_cbn_four_procedures <- function(model, label = "") {
 ##   DAG_7: A (3 parents: C,D,F), B (2 parents: D,F), E (2 parents: A,B)
 
 test_that("CBN DAG_2", {
-    local_edition(3)
-    check_cbn_four_procedures(DAG_2, label = "DAG_2")
+  local_edition(3)
+  check_cbn_four_procedures(DAG_2, label = "DAG_2")
 })
 
 test_that("CBN DAG_3", {
-    local_edition(3)
-    check_cbn_four_procedures(DAG_3, label = "DAG_3")
+  local_edition(3)
+  check_cbn_four_procedures(DAG_3, label = "DAG_3")
 })
 
 test_that("CBN DAG_4", {
-    local_edition(3)
-    check_cbn_four_procedures(DAG_4, label = "DAG_4")
+  local_edition(3)
+  check_cbn_four_procedures(DAG_4, label = "DAG_4")
 })
 
 test_that("CBN DAG_5", {
-    local_edition(3)
-    check_cbn_four_procedures(DAG_5, label = "DAG_5")
+  local_edition(3)
+  check_cbn_four_procedures(DAG_5, label = "DAG_5")
 })
 
 test_that("CBN DAG_6", {
-    local_edition(3)
-    check_cbn_four_procedures(DAG_6, label = "DAG_6")
+  local_edition(3)
+  check_cbn_four_procedures(DAG_6, label = "DAG_6")
 })
 
 test_that("CBN DAG_7", {
-    local_edition(3)
-    check_cbn_four_procedures(DAG_7, label = "DAG_7")
+  local_edition(3)
+  check_cbn_four_procedures(DAG_7, label = "DAG_7")
 })
 
 
@@ -463,77 +471,89 @@ test_that("CBN DAG_7", {
 ## circularity.
 
 test_that("CBN cascade: 2-parent AND — killing one parent removes child and its descendants", {
-    local_edition(3)
+  local_edition(3)
 
-    m <- data.frame(
-        From        = c("Root", "Root", "A", "B", "C"),
-        To          = c("A",    "B",    "C", "C", "D"),
-        rerun_lambda = c(2,     0.8,    1,   1,   0.5),
-        stringsAsFactors = FALSE
-    )
+  m <- data.frame(
+    From        = c("Root", "Root", "A", "B", "C"),
+    To          = c("A",    "B",    "C", "C", "D"),
+    rerun_lambda = c(2,     0.8,    1,   1,   0.5),
+    stringsAsFactors = FALSE
+  )
 
-    preds_from_model <- function(x) {
-        if (nrow(x) == 0) {
-            return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        tmp <- suppressWarnings(get_full_output(x))
-        f <- tmp$CBN_predicted_genotype_freqs
-        hp <- tmp$CBN_hitting_probs_from_WT
-        list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+  preds_from_model <- function(x) {
+    if (nrow(x) == 0) {
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
+    tmp <- suppressWarnings(get_full_output(x))
+    f <- tmp$CBN_predicted_genotype_freqs
+    hp <- tmp$CBN_hitting_probs_from_WT
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
+  }
 
-    res <- intervene_cpm_every_gene(list(CBN_model = m), "CBN")
+  res <- intervene_cpm_every_gene(list(CBN_model = m), "CBN")
 
-    ## Kill A: surviving rows 2 only
-    expect_equal(get_interv(res, "I:A"), preds_from_model(m[2, ]))
+  ## Kill A: surviving rows 2 only
+  expect_equal(get_interv(res, "I:A"), preds_from_model(m[2, ]))
 
-    ## Kill B: surviving rows 1 only
-    expect_equal(get_interv(res, "I:B"), preds_from_model(m[1, ]))
+  ## Kill B: surviving rows 1 only
+  expect_equal(get_interv(res, "I:B"), preds_from_model(m[1, ]))
 
-    ## Kill C: surviving rows 1,2
-    expect_equal(get_interv(res, "I:C"), preds_from_model(m[c(1, 2), ]))
+  ## Kill C: surviving rows 1,2
+  expect_equal(get_interv(res, "I:C"), preds_from_model(m[c(1, 2), ]))
 
-    ## Kill D: surviving rows 1,2,3,4
-    expect_equal(get_interv(res, "I:D"), preds_from_model(m[c(1, 2, 3, 4), ]))
+  ## Kill D: surviving rows 1,2,3,4
+  expect_equal(get_interv(res, "I:D"), preds_from_model(m[c(1, 2, 3, 4), ]))
 
-    ## Also verify all four procedures agree on this model
-    check_cbn_four_procedures(m, label = "cascade 2-parent AND")
+  ## Also verify all four procedures agree on this model
+  check_cbn_four_procedures(m, label = "cascade 2-parent AND")
 })
 
 
 test_that("CBN cascade: chain — killing a gene removes all descendants in the chain", {
-    local_edition(3)
+  local_edition(3)
 
-    m <- data.frame(
-        From        = c("Root", "A",  "B"),
-        To          = c("A",    "B",  "C"),
-        rerun_lambda = c(2,     0.8,  0.5),
-        stringsAsFactors = FALSE
-    )
+  m <- data.frame(
+    From        = c("Root", "A",  "B"),
+    To          = c("A",    "B",  "C"),
+    rerun_lambda = c(2,     0.8,  0.5),
+    stringsAsFactors = FALSE
+  )
 
-    preds_from_model <- function(x) {
-        if (nrow(x) == 0) {
-            return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        tmp <- suppressWarnings(get_full_output(x))
-        f <- tmp$CBN_predicted_genotype_freqs
-        hp <- tmp$CBN_hitting_probs_from_WT
-        list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+  preds_from_model <- function(x) {
+    if (nrow(x) == 0) {
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
+    tmp <- suppressWarnings(get_full_output(x))
+    f <- tmp$CBN_predicted_genotype_freqs
+    hp <- tmp$CBN_hitting_probs_from_WT
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
+  }
 
-    res <- intervene_cpm_every_gene(list(CBN_model = m), "CBN")
+  res <- intervene_cpm_every_gene(list(CBN_model = m), "CBN")
 
-    ## Kill A: B and C both cascade; no rows survive -> WT = 1
-    expect_equal(get_interv(res, "I:A"), preds_from_model(m[integer(0), ]))
+  ## Kill A: B and C both cascade; no rows survive -> WT = 1
+  expect_equal(get_interv(res, "I:A"), preds_from_model(m[integer(0), ]))
 
-    ## Kill B: C cascades; surviving rows 1 (Root->A)
-    expect_equal(get_interv(res, "I:B"), preds_from_model(m[1, ]))
+  ## Kill B: C cascades; surviving rows 1 (Root->A)
+  expect_equal(get_interv(res, "I:B"), preds_from_model(m[1, ]))
 
-    ## Kill C: leaf; surviving rows 1,2
-    expect_equal(get_interv(res, "I:C"), preds_from_model(m[c(1, 2), ]))
+  ## Kill C: leaf; surviving rows 1,2
+  expect_equal(get_interv(res, "I:C"), preds_from_model(m[c(1, 2), ]))
 
-    ## Also verify all four procedures agree on this model
-    check_cbn_four_procedures(m, label = "cascade chain")
+  ## Also verify all four procedures agree on this model
+  check_cbn_four_procedures(m, label = "cascade chain")
 })
 
 
@@ -552,41 +572,47 @@ test_that("CBN cascade: chain — killing a gene removes all descendants in the 
 ## propagate to D, which has a surviving parent (B).
 
 test_that("CBN no-over-cascade: cascade stops at node that still has all parents alive", {
-    local_edition(3)
+  local_edition(3)
 
-    m <- data.frame(
-        From        = c("Root", "Root", "A", "B", "B"),
-        To          = c("A",    "B",    "C", "C", "D"),
-        rerun_lambda = c(2,     0.8,    1,   1,   0.5),
-        stringsAsFactors = FALSE
-    )
+  m <- data.frame(
+    From        = c("Root", "Root", "A", "B", "B"),
+    To          = c("A",    "B",    "C", "C", "D"),
+    rerun_lambda = c(2,     0.8,    1,   1,   0.5),
+    stringsAsFactors = FALSE
+  )
 
-    preds_from_model <- function(x) {
-        if (nrow(x) == 0) {
-            return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        tmp <- suppressWarnings(get_full_output(x))
-        f <- tmp$CBN_predicted_genotype_freqs
-        hp <- tmp$CBN_hitting_probs_from_WT
-        list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+  preds_from_model <- function(x) {
+    if (nrow(x) == 0) {
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
+    tmp <- suppressWarnings(get_full_output(x))
+    f <- tmp$CBN_predicted_genotype_freqs
+    hp <- tmp$CBN_hitting_probs_from_WT
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
+  }
 
-    res <- intervene_cpm_every_gene(list(CBN_model = m), "CBN")
+  res <- intervene_cpm_every_gene(list(CBN_model = m), "CBN")
 
-    ## Kill A: C cascades (AND needs A+B), D survives (only needs B).
-    expect_equal(get_interv(res, "I:A"), preds_from_model(m[c(2, 5), ]))
+  ## Kill A: C cascades (AND needs A+B), D survives (only needs B).
+  expect_equal(get_interv(res, "I:A"), preds_from_model(m[c(2, 5), ]))
 
-    ## Kill B: C cascades (needs B), D also cascades (needs B).
-    expect_equal(get_interv(res, "I:B"), preds_from_model(m[1, ]))
+  ## Kill B: C cascades (needs B), D also cascades (needs B).
+  expect_equal(get_interv(res, "I:B"), preds_from_model(m[1, ]))
 
-    ## Kill C: D unaffected.
-    expect_equal(get_interv(res, "I:C"), preds_from_model(m[c(1, 2, 5), ]))
+  ## Kill C: D unaffected.
+  expect_equal(get_interv(res, "I:C"), preds_from_model(m[c(1, 2, 5), ]))
 
-    ## Kill D: leaf.
-    expect_equal(get_interv(res, "I:D"), preds_from_model(m[c(1, 2, 3, 4), ]))
+  ## Kill D: leaf.
+  expect_equal(get_interv(res, "I:D"), preds_from_model(m[c(1, 2, 3, 4), ]))
 
-    ## Also verify all four procedures agree on this model
-    check_cbn_four_procedures(m, label = "no-over-cascade")
+  ## Also verify all four procedures agree on this model
+  check_cbn_four_procedures(m, label = "no-over-cascade")
 })
 
 
@@ -623,27 +649,33 @@ test_that("CBN no-over-cascade: cascade stops at node that still has all parents
 ##           Surviving: 1,2,3,4,5,6,7,8
 
 test_that("CBN DAG_6: ground-truth comparison for all gene kills", {
-    local_edition(3)
+  local_edition(3)
 
-    preds_from_model <- function(x) {
-        if (nrow(x) == 0) {
-            return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        tmp <- suppressWarnings(get_full_output(x))
-        f <- tmp$CBN_predicted_genotype_freqs
-        hp <- tmp$CBN_hitting_probs_from_WT
-        list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+  preds_from_model <- function(x) {
+    if (nrow(x) == 0) {
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
+    tmp <- suppressWarnings(get_full_output(x))
+    f <- tmp$CBN_predicted_genotype_freqs
+    hp <- tmp$CBN_hitting_probs_from_WT
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
+  }
 
-    res <- intervene_cpm_every_gene(list(CBN_model = DAG_6), "CBN")
+  res <- intervene_cpm_every_gene(list(CBN_model = DAG_6), "CBN")
 
-    expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_6[c(2, 3, 4, 7, 8), ]))
-    expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_6[c(1, 3, 4, 7, 8), ]))
-    expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_6[c(1, 2, 4, 5, 6), ]))
-    expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_6[c(1, 2, 3, 5, 6), ]))
-    expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_6[c(1, 2, 3, 4, 7, 8), ]))
-    expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_6[c(1, 2, 3, 4, 5, 6), ]))
-    expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_6[c(1, 2, 3, 4, 5, 6, 7, 8), ]))
+  expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_6[c(2, 3, 4, 7, 8), ]))
+  expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_6[c(1, 3, 4, 7, 8), ]))
+  expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_6[c(1, 2, 4, 5, 6), ]))
+  expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_6[c(1, 2, 3, 5, 6), ]))
+  expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_6[c(1, 2, 3, 4, 7, 8), ]))
+  expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_6[c(1, 2, 3, 4, 5, 6), ]))
+  expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_6[c(1, 2, 3, 4, 5, 6, 7, 8), ]))
 })
 
 
@@ -686,28 +718,34 @@ test_that("CBN DAG_6: ground-truth comparison for all gene kills", {
 ##           Surviving: 1,2,3,4,5,6,7,8
 
 test_that("CBN DAG_7: ground-truth comparison for all gene kills", {
-    ## Recall all four procedures are compared above on this very DAG
-    ## so running them here again adds nothing.
-    local_edition(3)
+  ## Recall all four procedures are compared above on this very DAG
+  ## so running them here again adds nothing.
+  local_edition(3)
 
-    preds_from_model <- function(x) {
-        if (nrow(x) == 0) {
-            return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        tmp <- suppressWarnings(get_full_output(x))
-        f <- tmp$CBN_predicted_genotype_freqs
-        hp <- tmp$CBN_hitting_probs_from_WT
-        list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+  preds_from_model <- function(x) {
+    if (nrow(x) == 0) {
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
+    tmp <- suppressWarnings(get_full_output(x))
+    f <- tmp$CBN_predicted_genotype_freqs
+    hp <- tmp$CBN_hitting_probs_from_WT
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
+  }
 
-    res <- intervene_cpm_every_gene(list(CBN_model = DAG_7), "CBN")
+  res <- intervene_cpm_every_gene(list(CBN_model = DAG_7), "CBN")
 
-    expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_7[c(2, 3, 7, 8), ]))
-    expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_7[c(1, 3), ]))
-    expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_7[c(1, 2), ]))
-    expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_7[c(1, 2, 3, 7, 8), ]))
-    expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_7[c(1, 2, 3, 4, 5, 6), ]))
-    expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_7[c(1, 2, 3, 4, 5, 6, 7, 8), ]))
+  expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_7[c(2, 3, 7, 8), ]))
+  expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_7[c(1, 3), ]))
+  expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_7[c(1, 2), ]))
+  expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_7[c(1, 2, 3, 7, 8), ]))
+  expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_7[c(1, 2, 3, 4, 5, 6), ]))
+  expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_7[c(1, 2, 3, 4, 5, 6, 7, 8), ]))
 })
 
 
@@ -733,30 +771,36 @@ test_that("CBN DAG_7: ground-truth comparison for all gene kills", {
 ## Kill E: leaf. Surviving: 1-20
 
 test_that("CBN DAG_2: ground-truth comparison for all gene kills", {
-    local_edition(3)
+  local_edition(3)
 
-    preds_from_model <- function(x) {
-        if (nrow(x) == 0) {
-            return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        tmp <- suppressWarnings(get_full_output(x))
-        f <- tmp$CBN_predicted_genotype_freqs
-        hp <- tmp$CBN_hitting_probs_from_WT
-        list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+  preds_from_model <- function(x) {
+    if (nrow(x) == 0) {
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
+    tmp <- suppressWarnings(get_full_output(x))
+    f <- tmp$CBN_predicted_genotype_freqs
+    hp <- tmp$CBN_hitting_probs_from_WT
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
+  }
 
-    res <- intervene_cpm_every_gene(list(CBN_model = DAG_2), "CBN")
+  res <- intervene_cpm_every_gene(list(CBN_model = DAG_2), "CBN")
 
-    expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_2[c(2, 3, 4, 5, 16, 17, 18, 19), ]))
-    expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_2[c(1, 3, 4, 5), ]))
-    expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_2[c(1, 2, 4, 5), ]))
-    expect_equal(get_interv(res, "I:J"), preds_from_model(DAG_2[c(1, 2, 3, 5), ]))
-    expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_2[c(1, 2, 3, 4), ]))
-    expect_equal(get_interv(res, "I:H"), preds_from_model(DAG_2[c(1:5, 11:19), ]))
-    expect_equal(get_interv(res, "I:I"), preds_from_model(DAG_2[c(1:10, 16:21), ]))
-    expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_2[c(1:15, 20, 21), ]))
-    expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_2[c(1:19, 21), ]))
-    expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_2[c(1:20), ]))
+  expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_2[c(2, 3, 4, 5, 16, 17, 18, 19), ]))
+  expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_2[c(1, 3, 4, 5), ]))
+  expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_2[c(1, 2, 4, 5), ]))
+  expect_equal(get_interv(res, "I:J"), preds_from_model(DAG_2[c(1, 2, 3, 5), ]))
+  expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_2[c(1, 2, 3, 4), ]))
+  expect_equal(get_interv(res, "I:H"), preds_from_model(DAG_2[c(1:5, 11:19), ]))
+  expect_equal(get_interv(res, "I:I"), preds_from_model(DAG_2[c(1:10, 16:21), ]))
+  expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_2[c(1:15, 20, 21), ]))
+  expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_2[c(1:19, 21), ]))
+  expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_2[c(1:20), ]))
 })
 
 
@@ -794,29 +838,35 @@ test_that("CBN DAG_2: ground-truth comparison for all gene kills", {
 ## Kill C: leaf. Surviving: 1,2,3,4,6,8,9,11
 
 test_that("CBN DAG_3: ground-truth comparison for all gene kills", {
-    local_edition(3)
+  local_edition(3)
 
-    preds_from_model <- function(x) {
-        if (nrow(x) == 0) {
-            return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        tmp <- suppressWarnings(get_full_output(x))
-        f <- tmp$CBN_predicted_genotype_freqs
-        hp <- tmp$CBN_hitting_probs_from_WT
-        list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+  preds_from_model <- function(x) {
+    if (nrow(x) == 0) {
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
+    tmp <- suppressWarnings(get_full_output(x))
+    f <- tmp$CBN_predicted_genotype_freqs
+    hp <- tmp$CBN_hitting_probs_from_WT
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
+  }
 
-    res <- intervene_cpm_every_gene(list(CBN_model = DAG_3), "CBN")
+  res <- intervene_cpm_every_gene(list(CBN_model = DAG_3), "CBN")
 
-    expect_equal(get_interv(res, "I:I"), preds_from_model(DAG_3[2, ]))
-    expect_equal(get_interv(res, "I:H"), preds_from_model(DAG_3[c(1, 3, 4, 6, 8, 9, 11), ]))
-    expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_3[c(1, 2, 4), ]))
-    expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_3[c(1, 2, 3, 6, 8, 9, 11), ]))
-    expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_3[c(1, 2, 3, 4), ]))
-    expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_3[c(1, 2, 3, 4, 6, 9, 11), ]))
-    expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_3[c(1, 2, 3, 4, 6, 8), ]))
-    expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_3[c(1, 2, 3, 4, 6, 8, 9), ]))
-    expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_3[c(1, 2, 3, 4, 6, 8, 9, 11), ]))
+  expect_equal(get_interv(res, "I:I"), preds_from_model(DAG_3[2, ]))
+  expect_equal(get_interv(res, "I:H"), preds_from_model(DAG_3[c(1, 3, 4, 6, 8, 9, 11), ]))
+  expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_3[c(1, 2, 4), ]))
+  expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_3[c(1, 2, 3, 6, 8, 9, 11), ]))
+  expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_3[c(1, 2, 3, 4), ]))
+  expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_3[c(1, 2, 3, 4, 6, 9, 11), ]))
+  expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_3[c(1, 2, 3, 4, 6, 8), ]))
+  expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_3[c(1, 2, 3, 4, 6, 8, 9), ]))
+  expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_3[c(1, 2, 3, 4, 6, 8, 9, 11), ]))
 })
 
 
@@ -849,29 +899,35 @@ test_that("CBN DAG_3: ground-truth comparison for all gene kills", {
 ## Kill H: leaf. Surviving: 1,2,3,4,5,6,7,8,9,11,12,13
 
 test_that("CBN DAG_4: ground-truth comparison for all gene kills", {
-    local_edition(3)
+  local_edition(3)
 
-    preds_from_model <- function(x) {
-        if (nrow(x) == 0) {
-            return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        tmp <- suppressWarnings(get_full_output(x))
-        f <- tmp$CBN_predicted_genotype_freqs
-        hp <- tmp$CBN_hitting_probs_from_WT
-        list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+  preds_from_model <- function(x) {
+    if (nrow(x) == 0) {
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
+    tmp <- suppressWarnings(get_full_output(x))
+    f <- tmp$CBN_predicted_genotype_freqs
+    hp <- tmp$CBN_hitting_probs_from_WT
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
+  }
 
-    res <- intervene_cpm_every_gene(list(CBN_model = DAG_4), "CBN")
+  res <- intervene_cpm_every_gene(list(CBN_model = DAG_4), "CBN")
 
-    expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_4[c(2, 3, 4, 9), ]))
-    expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_4[c(1, 3, 4, 5, 9), ]))
-    expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_4[c(1, 2, 4, 5), ]))
-    expect_equal(get_interv(res, "I:I"), preds_from_model(DAG_4[c(1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13), ]))
-    expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_4[c(1, 2, 3, 4, 6, 7, 8, 9), ]))
-    expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_4[c(1, 2, 3, 4, 5, 9), ]))
-    expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_4[c(1, 2, 3, 4, 5, 6, 7, 8), ]))
-    expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_4[c(1, 2, 3, 4, 5, 6, 7, 8, 9), ]))
-    expect_equal(get_interv(res, "I:H"), preds_from_model(DAG_4[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13), ]))
+  expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_4[c(2, 3, 4, 9), ]))
+  expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_4[c(1, 3, 4, 5, 9), ]))
+  expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_4[c(1, 2, 4, 5), ]))
+  expect_equal(get_interv(res, "I:I"), preds_from_model(DAG_4[c(1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13), ]))
+  expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_4[c(1, 2, 3, 4, 6, 7, 8, 9), ]))
+  expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_4[c(1, 2, 3, 4, 5, 9), ]))
+  expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_4[c(1, 2, 3, 4, 5, 6, 7, 8), ]))
+  expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_4[c(1, 2, 3, 4, 5, 6, 7, 8, 9), ]))
+  expect_equal(get_interv(res, "I:H"), preds_from_model(DAG_4[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13), ]))
 })
 
 
@@ -902,27 +958,33 @@ test_that("CBN DAG_4: ground-truth comparison for all gene kills", {
 ## Kill B: leaf. Surviving: 1,2,3,4,5,6,7,8,9,10,11,12,13
 
 test_that("CBN DAG_5: ground-truth comparison for all gene kills", {
-    local_edition(3)
+  local_edition(3)
 
-    preds_from_model <- function(x) {
-        if (nrow(x) == 0) {
-            return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0)))
-        }
-        tmp <- suppressWarnings(get_full_output(x))
-        f <- tmp$CBN_predicted_genotype_freqs
-        hp <- tmp$CBN_hitting_probs_from_WT
-        list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp))
+  preds_from_model <- function(x) {
+    if (nrow(x) == 0) {
+      return(list(genot_freqs = c(WT = 1), hitting_probs_from_WT = c(WT = 1.0),
+                  hitting_probs_from_WT_direct = c(WT = 1.0),
+                  divergence_hitting_prob_calculation = 0.0))
     }
+    tmp <- suppressWarnings(get_full_output(x))
+    f <- tmp$CBN_predicted_genotype_freqs
+    hp <- tmp$CBN_hitting_probs_from_WT
+    hpd <- tmp$CBN_hitting_probs_from_WT_direct
+    div <- tmp$CBN_divergence_hitting_prob_calculation
+    list(genot_freqs = f[f > 0], hitting_probs_from_WT = filter_hp_keep_wt(hp),
+         hitting_probs_from_WT_direct = filter_hp_keep_wt(hpd),
+         divergence_hitting_prob_calculation = div)
+  }
 
-    res <- intervene_cpm_every_gene(list(CBN_model = DAG_5), "CBN")
+  res <- intervene_cpm_every_gene(list(CBN_model = DAG_5), "CBN")
 
-    expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_5[c(2, 3, 4), ]))
-    expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_5[c(1, 3, 4), ]))
-    expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_5[c(1, 2, 4), ]))
-    expect_equal(get_interv(res, "I:I"), preds_from_model(DAG_5[c(1, 2, 3, 9, 10, 11, 13), ]))
-    expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_5[c(1, 2, 3, 4, 9, 10, 11, 13), ]))
-    expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 12), ]))
-    expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13), ]))
-    expect_equal(get_interv(res, "I:H"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15), ]))
-    expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), ]))
+  expect_equal(get_interv(res, "I:A"), preds_from_model(DAG_5[c(2, 3, 4), ]))
+  expect_equal(get_interv(res, "I:F"), preds_from_model(DAG_5[c(1, 3, 4), ]))
+  expect_equal(get_interv(res, "I:G"), preds_from_model(DAG_5[c(1, 2, 4), ]))
+  expect_equal(get_interv(res, "I:I"), preds_from_model(DAG_5[c(1, 2, 3, 9, 10, 11, 13), ]))
+  expect_equal(get_interv(res, "I:C"), preds_from_model(DAG_5[c(1, 2, 3, 4, 9, 10, 11, 13), ]))
+  expect_equal(get_interv(res, "I:D"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 12), ]))
+  expect_equal(get_interv(res, "I:E"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13), ]))
+  expect_equal(get_interv(res, "I:H"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15), ]))
+  expect_equal(get_interv(res, "I:B"), preds_from_model(DAG_5[c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), ]))
 })

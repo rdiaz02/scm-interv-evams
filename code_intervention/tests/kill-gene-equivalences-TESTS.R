@@ -1,17 +1,17 @@
 ## Copyright 2022 Ramon Diaz-Uriarte
 
-## This program is free software: you can redistribute it and/or modify it under
-## the terms of the GNU Affero General Public License (AGPLv3.0) as published by
-## the Free Software Foundation, either version 3 of the License, or (at your
-## option) any later version.
+## This program is free software: you can redistribute it and/or modify it
+## under the terms of the GNU Affero General Public License (AGPLv3.0) as
+## published by the Free Software Foundation, either version 3 of the
+## License, or (at your option) any later version.
 
 ## This program is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Affero General Public License for more details.
 
-## You should have received a copy of the GNU Affero General Public License along
-## with this program.  If not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 ### What this is
@@ -92,8 +92,8 @@ set.seed(NULL)
 
 ## Two intervention outputs -> stop unless identical
 stop_unless_intervention_identical <- function(x, y) {
-    stopifnot(all(unlist(lapply(1:length(x),
-                                function(i)
+  stopifnot(all(unlist(lapply(1:length(x),
+                              function(i)
                                     all.equal(x[[i]], y[[i]])))))
 }
 
@@ -105,125 +105,131 @@ stop_unless_intervention_identical <- function(x, y) {
 ##  but here we also use killing via setting parameters to 0
 
 test_that("kill gene from which all depend", {
-    local_edition(3)
-    ## CBN
-    m1 <- data.frame(From = c("Root", "A", "A", "A"),
-                     To   = c("A",    "B", "C", "D"),
-                     rerun_lambda = 1:4)
-    ## OT
-    m2 <- data.frame(From = c("Root", "B", "B", "B"),
-                     To   = c("B",    "A", "C", "D"),
-                     OT_edgeWeight = rep(0.3, 4))
-    ## OncoBN
-    m3 <- data.frame(From = c("Root", "Z", "Z", "Z"),
-                     To   = c("Z",    "B", "C", "D"),
-                     theta = rep(0.2, 4),
-                     Relation = "Single")
-    ## H-ESBCN
-    m4 <- data.frame(From = c("Root", "C", "C", "C"),
-                     To   = c("C",    "B", "A", "D"),
-                     Lambdas = 1:4,
-                     Relation = "Single")
-    expect_true(nrow(suppressWarnings(kill_gene(m1, "A"))) == 0)
-    expect_true(nrow(suppressWarnings(kill_gene(m2, "B"))) == 0)
-    expect_true(nrow(suppressWarnings(kill_gene(m3, "Z"))) == 0)
-    expect_true(nrow(suppressWarnings(kill_gene(m4, "C"))) == 0)
+  local_edition(3)
+  ## CBN
+  m1 <- data.frame(From = c("Root", "A", "A", "A"),
+                   To   = c("A",    "B", "C", "D"),
+                   rerun_lambda = 1:4)
+  ## OT
+  m2 <- data.frame(From = c("Root", "B", "B", "B"),
+                   To   = c("B",    "A", "C", "D"),
+                   OT_edgeWeight = rep(0.3, 4))
+  ## OncoBN
+  m3 <- data.frame(From = c("Root", "Z", "Z", "Z"),
+                   To   = c("Z",    "B", "C", "D"),
+                   theta = rep(0.2, 4),
+                   Relation = "Single")
+  ## H-ESBCN
+  m4 <- data.frame(From = c("Root", "C", "C", "C"),
+                   To   = c("C",    "B", "A", "D"),
+                   Lambdas = 1:4,
+                   Relation = "Single")
+  expect_true(nrow(suppressWarnings(kill_gene(m1, "A"))) == 0)
+  expect_true(nrow(suppressWarnings(kill_gene(m2, "B"))) == 0)
+  expect_true(nrow(suppressWarnings(kill_gene(m3, "Z"))) == 0)
+  expect_true(nrow(suppressWarnings(kill_gene(m4, "C"))) == 0)
 
-    expect_equal(kill_gene(m1, "B"), m1[-2, ])
+  expect_equal(kill_gene(m1, "B"), m1[-2, ])
 
-    just_wt <- c(WT = 1)
-    just_wt_full <- list(genot_freqs = just_wt, hitting_probs_from_WT = c(WT = 1.0))
-    ## Structural kill reduces model dimensions, params-to-0 keeps them.
-    ## Filter > 0 before comparing when dimensions may differ.
-    filter_preds <- function(x) list(
-        genot_freqs = x$genot_freqs[x$genot_freqs > 0],
-        hitting_probs_from_WT = x$hitting_probs_from_WT[x$hitting_probs_from_WT > 0])
+  just_wt <- c(WT = 1)
+  just_wt_full <- list(genot_freqs = just_wt,
+                       hitting_probs_from_WT = c(WT = 1.0),
+                       hitting_probs_from_WT_direct = c(WT = 1.0),
+                       divergence_hitting_prob_calculation = 0.0)
+  ## Structural kill reduces model dimensions, params-to-0 keeps them.
+  ## Filter > 0 before comparing when dimensions may differ.
+  filter_preds <- function(x) list(
+    genot_freqs = x$genot_freqs[x$genot_freqs > 0],
+    hitting_probs_from_WT = x$hitting_probs_from_WT[x$hitting_probs_from_WT > 0],
+    hitting_probs_from_WT_direct =
+      x$hitting_probs_from_WT_direct[x$hitting_probs_from_WT_direct > 0],
+    divergence_hitting_prob_calculation = x$divergence_hitting_prob_calculation)
 
-    expect_identical(
-        get_genotype_freqs_cpm(suppressWarnings(kill_gene(m1, "A"))),
-        just_wt_full)
+  expect_identical(
+    get_genotype_freqs_cpm(suppressWarnings(kill_gene(m1, "A"))),
+    just_wt_full)
 
-    expect_identical(
-        get_genotype_freqs_cpm(suppressWarnings(kill_gene(m2, "B"))),
-        just_wt_full)
+  expect_identical(
+    get_genotype_freqs_cpm(suppressWarnings(kill_gene(m2, "B"))),
+    just_wt_full)
 
-    expect_identical(
-        get_genotype_freqs_cpm(suppressWarnings(kill_gene(m3, "Z"))),
-        just_wt_full)
+  expect_identical(
+    get_genotype_freqs_cpm(suppressWarnings(kill_gene(m3, "Z"))),
+    just_wt_full)
 
-    expect_identical(
-      get_genotype_freqs_cpm(suppressWarnings(kill_gene(m4, "C"))),
-      just_wt_full)
+  expect_identical(
+    get_genotype_freqs_cpm(suppressWarnings(kill_gene(m4, "C"))),
+    just_wt_full)
 
-    ## When setting parameters to 0. For pedagogical purposes, do
-    ## not suppres warnings nor messages
+  ## When setting parameters to 0. For pedagogical purposes, do
+  ## not suppres warnings nor messages
 
-    kill_gene_by_params_to_0(m1, "A", verbose = TRUE)
-    kill_gene_by_params_to_0(m2, "B", verbose = TRUE)
-    kill_gene_by_params_to_0(m3, "Z", verbose = TRUE)
-    kill_gene_by_params_to_0(m4, "C", verbose = TRUE)
+  kill_gene_by_params_to_0(m1, "A", verbose = TRUE)
+  kill_gene_by_params_to_0(m2, "B", verbose = TRUE)
+  kill_gene_by_params_to_0(m3, "Z", verbose = TRUE)
+  kill_gene_by_params_to_0(m4, "C", verbose = TRUE)
 
-    expect_warning(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m1, "A", verbose = TRUE)),
-                   "weighted_fgraph contains unreachable destinations")
-    expect_warning(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m2, "B", verbose = TRUE)),
-                   "weighted_fgraph contains unreachable destinations")
-    get_genotype_freqs_cpm(kill_gene_by_params_to_0(m3, "Z", verbose = TRUE))
-    expect_warning(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m4, "C", verbose = TRUE)),
-                   "weighted_fgraph contains unreachable destinations")
+  expect_warning(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m1, "A", verbose = TRUE)),
+                 "weighted_fgraph contains unreachable destinations")
+  expect_warning(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m2, "B", verbose = TRUE)),
+                 "weighted_fgraph contains unreachable destinations")
+  get_genotype_freqs_cpm(kill_gene_by_params_to_0(m3, "Z", verbose = TRUE))
+  expect_warning(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m4, "C", verbose = TRUE)),
+                 "weighted_fgraph contains unreachable destinations")
 
-    ## Same predictions
-    pm1 <- suppressWarnings(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m1, "A")))
-    pm2 <- suppressWarnings(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m2, "B")))
-    pm3 <- suppressWarnings(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m3, "Z")))
-    pm4 <- suppressWarnings(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m4, "C")))
+  ## Same predictions
+  pm1 <- suppressWarnings(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m1, "A")))
+  pm2 <- suppressWarnings(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m2, "B")))
+  pm3 <- suppressWarnings(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m3, "Z")))
+  pm4 <- suppressWarnings(get_genotype_freqs_cpm(kill_gene_by_params_to_0(m4, "C")))
 
-    expect_equal(filter_preds(pm1), just_wt_full)
-    expect_equal(filter_preds(pm2), just_wt_full)
-    expect_equal(filter_preds(pm3), just_wt_full)
-    expect_equal(filter_preds(pm4), just_wt_full)
+  expect_equal(filter_preds(pm1), just_wt_full)
+  expect_equal(filter_preds(pm2), just_wt_full)
+  expect_equal(filter_preds(pm3), just_wt_full)
+  expect_equal(filter_preds(pm4), just_wt_full)
 
-    ## For CBN and HESBCN, two additional methods: landscape and trans.
-    ## rate matrix
-    ## First, utility to create the landscape from the bare model
-    ## Based on generate_n_f_landscape_requir.
-    ## Remember for fitness landscape, gene names must be sequential letters
-    ## starting from A (though A need not be "the first" in the DAG).
-    cbn_to_landscape_obj <- function(model, n_genes) {
-      a_cpm_2_si <- 0.006
-      genot_fitness <- ev2_cpm_to_fitness_genots(model, a = a_cpm_2_si)
-      ## Newer OncoSimulR uses "Birth"; older uses "Fitness"
-      fitness_col <- ifelse("Birth" %in% colnames(genot_fitness), "Birth", "Fitness")
-      rfo <- cbind(genots_to_bin(genot_fitness$Genotype, n_genes),
-                   Fitness = genot_fitness[[fitness_col]])
-      rfo <- rfo[rfo[, "Fitness"] > 0, ]
-      class(rfo) <- c("matrix", "array")
-      trm_and_c <- suppressMessages(get_scaled_trm_adaptive(rfo, c = 1/a_cpm_2_si))
-      list(fitness_landscape = rfo,
-           c = trm_and_c$c,
-           trm_scaled = trm_and_c$trm_scaled)
-    }
+  ## For CBN and HESBCN, two additional methods: landscape and trans.
+  ## rate matrix
+  ## First, utility to create the landscape from the bare model
+  ## Based on generate_n_f_landscape_requir.
+  ## Remember for fitness landscape, gene names must be sequential letters
+  ## starting from A (though A need not be "the first" in the DAG).
+  cbn_to_landscape_obj <- function(model, n_genes) {
+    a_cpm_2_si <- 0.006
+    genot_fitness <- ev2_cpm_to_fitness_genots(model, a = a_cpm_2_si)
+    ## Newer OncoSimulR uses "Birth"; older uses "Fitness"
+    fitness_col <- ifelse("Birth" %in% colnames(genot_fitness), "Birth", "Fitness")
+    rfo <- cbind(genots_to_bin(genot_fitness$Genotype, n_genes),
+                 Fitness = genot_fitness[[fitness_col]])
+    rfo <- rfo[rfo[, "Fitness"] > 0, ]
+    class(rfo) <- c("matrix", "array")
+    trm_and_c <- suppressMessages(get_scaled_trm_adaptive(rfo, c = 1/a_cpm_2_si))
+    list(fitness_landscape = rfo,
+         c = trm_and_c$c,
+         trm_scaled = trm_and_c$trm_scaled)
+  }
 
-    m1_tr_i <- intervene_cpm_trm_rm_every_gene(c(list(CBN_model = m1),
-                                                 get_full_output(m1)),
-                                               "CBN")
-    m1_fl <- cbn_to_landscape_obj(m1, 4)
-    m1_fl_i <- intervene_fitness_landscape_every_gene(m1_fl)
-    m1_tr_i[["I:A"]]$genot_freqs
-    expect_equal(m1_tr_i[["I:A"]]$genot_freqs, just_wt)
-    expect_equal(m1_tr_i[["I:A"]]$hitting_probs_from_WT, just_wt_full$hitting_probs_from_WT)
-    ## Full structure comparison (genot_freqs AND hitting_probs must match)
-    expect_equal(m1_tr_i, m1_fl_i)
+  m1_tr_i <- intervene_cpm_trm_rm_every_gene(c(list(CBN_model = m1),
+                                               get_full_output(m1)),
+                                             "CBN")
+  m1_fl <- cbn_to_landscape_obj(m1, 4)
+  m1_fl_i <- intervene_fitness_landscape_every_gene(m1_fl)
+  m1_tr_i[["I:A"]]$genot_freqs
+  expect_equal(m1_tr_i[["I:A"]]$genot_freqs, just_wt)
+  expect_equal(m1_tr_i[["I:A"]]$hitting_probs_from_WT, just_wt_full$hitting_probs_from_WT)
+  ## Full structure comparison (genot_freqs AND hitting_probs must match)
+  expect_equal(m1_tr_i, m1_fl_i)
 
-    m4_tr_i <- intervene_cpm_trm_rm_every_gene(c(list(HESBCN_model = m4),
-                                                 get_full_output(m4)),
-                                               "HESBCN")
-    m4_fl <- cbn_to_landscape_obj(m4, 4)
-    m4_fl_i <- intervene_fitness_landscape_every_gene(m4_fl)
-    m4_tr_i[["I:C"]]$genot_freqs
-    expect_equal(m4_tr_i[["I:C"]]$genot_freqs, just_wt)
-    expect_equal(m4_tr_i[["I:C"]]$hitting_probs_from_WT, just_wt_full$hitting_probs_from_WT)
-    ## Full structure comparison (genot_freqs AND hitting_probs must match)
-    expect_equal(m4_tr_i, m4_fl_i)
+  m4_tr_i <- intervene_cpm_trm_rm_every_gene(c(list(HESBCN_model = m4),
+                                               get_full_output(m4)),
+                                             "HESBCN")
+  m4_fl <- cbn_to_landscape_obj(m4, 4)
+  m4_fl_i <- intervene_fitness_landscape_every_gene(m4_fl)
+  m4_tr_i[["I:C"]]$genot_freqs
+  expect_equal(m4_tr_i[["I:C"]]$genot_freqs, just_wt)
+  expect_equal(m4_tr_i[["I:C"]]$hitting_probs_from_WT, just_wt_full$hitting_probs_from_WT)
+  ## Full structure comparison (genot_freqs AND hitting_probs must match)
+  expect_equal(m4_tr_i, m4_fl_i)
 })
 
 
@@ -233,130 +239,130 @@ test_that("kill gene from which all depend", {
 
 ## Run and check a few times
 local({
-    set.seed(NULL)
-    total_iters <- 10
-    cat("Standard DAG intervention identical to setting parameters to 0")
-    for (i in 1:total_iters) {
-        cat("\n #################### Doing iteration ", i, "\n\n")
-#### Models and fitness landscapes
+  set.seed(NULL)
+  total_iters <- 10
+  cat("Standard DAG intervention identical to setting parameters to 0")
+  for (i in 1:total_iters) {
+    cat("\n #################### Doing iteration ", i, "\n\n")
+    #### Models and fitness landscapes
 
-        ## CPM models simulated from scratch
+    ## CPM models simulated from scratch
 
-        rcbn <- evamtools::random_evam(7, model = "CBN")
-        rhes <- evamtools::random_evam(7, model = "HESBCN")
-        rot <- evamtools::random_evam(7, model = "OT", ot_oncobn_epos = 0)
-        rdbn_d <- evamtools::random_evam(7, model = "OncoBN", ot_oncobn_epos = 0,
-                                         oncobn_model = "DBN")
-        rdbn_c <- evamtools::random_evam(7, model = "OncoBN", ot_oncobn_epos = 0,
-                                         oncobn_model = "CBN")
-        rmhn <- evamtools::random_evam(7, model = "MHN")
-
-
-        ## CPM models simulated ensuring restrictions fulfilled
-        ## The model itself is in x[[1]][[11]][[1]]
-        ## MHN cannot be generated this way (no model <-> fitness landscape)
-        ## OT and OncoBN subsumed in CBN and/or HESBCN
-        rcbn_f <- suppressMessages(generate_n_f_landscape_requir(1, 7, "CBN"))
-        rhes_f <- suppressMessages(
-            generate_n_f_landscape_requir(1, 7, "HESBCN",
-                                          hesbcn_relations = c("AND", "OR", "XOR")))
+    rcbn <- evamtools::random_evam(7, model = "CBN")
+    rhes <- evamtools::random_evam(7, model = "HESBCN")
+    rot <- evamtools::random_evam(7, model = "OT", ot_oncobn_epos = 0)
+    rdbn_d <- evamtools::random_evam(7, model = "OncoBN", ot_oncobn_epos = 0,
+                                     oncobn_model = "DBN")
+    rdbn_c <- evamtools::random_evam(7, model = "OncoBN", ot_oncobn_epos = 0,
+                                     oncobn_model = "CBN")
+    rmhn <- evamtools::random_evam(7, model = "MHN")
 
 
+    ## CPM models simulated ensuring restrictions fulfilled
+    ## The model itself is in x[[1]][[11]][[1]]
+    ## MHN cannot be generated this way (no model <-> fitness landscape)
+    ## OT and OncoBN subsumed in CBN and/or HESBCN
+    rcbn_f <- suppressMessages(generate_n_f_landscape_requir(1, 7, "CBN"))
+    rhes_f <- suppressMessages(
+      generate_n_f_landscape_requir(1, 7, "HESBCN",
+                                    hesbcn_relations = c("AND", "OR", "XOR")))
 
-#### "Standard" kill-gene procedure
-        i_rcbn <- intervene_cpm_every_gene(rcbn, "CBN", verbose = TRUE)
-        i_rhes <- intervene_cpm_every_gene(rhes, "HESBCN", verbose = TRUE)
-        i_rcbn_f <- intervene_cpm_every_gene(rcbn_f[[1]]$other, "CBN", verbose = TRUE)
-        i_rhes_f <- intervene_cpm_every_gene(rhes_f[[1]]$other, "HESBCN", verbose = TRUE)
-        i_rot <- intervene_cpm_every_gene(rot, "OT", verbose = TRUE)
-        i_rdbn_d <- intervene_cpm_every_gene(rdbn_d, "OncoBN", verbose = TRUE)
-        i_rdbn_c <- intervene_cpm_every_gene(rdbn_c, "OncoBN", verbose = TRUE)
-        i_rmhn <- intervene_cpm_every_gene(rmhn, "MHN", verbose = TRUE)
 
-#### Kill by setting parameters to 0
 
-        ## Yes, expect, as should be the case, warning for unreachable destinations
-        i_0_rcbn <-
-            intervene_cpm_every_gene(rcbn, "CBN",
-                                     kill_gene_funct = kill_gene_by_params_to_0,
-                                     verbose = TRUE)
-        i_0_rhes <-
-            intervene_cpm_every_gene(rhes, "HESBCN",
-                                     kill_gene_funct = kill_gene_by_params_to_0,
-                                     verbose = TRUE)
+    #### "Standard" kill-gene procedure
+    i_rcbn <- intervene_cpm_every_gene(rcbn, "CBN", verbose = TRUE)
+    i_rhes <- intervene_cpm_every_gene(rhes, "HESBCN", verbose = TRUE)
+    i_rcbn_f <- intervene_cpm_every_gene(rcbn_f[[1]]$other, "CBN", verbose = TRUE)
+    i_rhes_f <- intervene_cpm_every_gene(rhes_f[[1]]$other, "HESBCN", verbose = TRUE)
+    i_rot <- intervene_cpm_every_gene(rot, "OT", verbose = TRUE)
+    i_rdbn_d <- intervene_cpm_every_gene(rdbn_d, "OncoBN", verbose = TRUE)
+    i_rdbn_c <- intervene_cpm_every_gene(rdbn_c, "OncoBN", verbose = TRUE)
+    i_rmhn <- intervene_cpm_every_gene(rmhn, "MHN", verbose = TRUE)
 
-        i_0_rcbn_f <-
-            intervene_cpm_every_gene(rcbn_f[[1]]$other, "CBN",
-                                     kill_gene_funct = kill_gene_by_params_to_0,
-                                     verbose = TRUE)
-        i_0_rhes_f <-
-            intervene_cpm_every_gene(rhes_f[[1]]$other, "HESBCN",
-                                     kill_gene_funct = kill_gene_by_params_to_0,
-                                     verbose = TRUE)
-        i_0_rot <-
-            intervene_cpm_every_gene(rot, "OT",
-                                     kill_gene_funct = kill_gene_by_params_to_0,
-                                     verbose = TRUE)
-        i_0_rdbn_d <-
-            intervene_cpm_every_gene(rdbn_d, "OncoBN",
-                                     kill_gene_funct = kill_gene_by_params_to_0,
-                                     verbose = TRUE)
-        i_0_rdbn_c <-
-            intervene_cpm_every_gene(rdbn_c, "OncoBN",
-                                     kill_gene_funct = kill_gene_by_params_to_0,
-                                     verbose = TRUE)
-        i_0_rmhn <-
-            intervene_cpm_every_gene(rmhn, "MHN",
-                                     kill_gene_funct = kill_gene_by_params_to_0,
-                                     verbose = TRUE)
+    #### Kill by setting parameters to 0
 
-        ## Yes, it detects failures. For example
-        ## stop_unless_intervention_identical(i_0_rcbn, i_0_rot)
-        ## stop_unless_intervention_identical(i_0_rdbn_c, i_0_rdbn_d)
+    ## Yes, expect, as should be the case, warning for unreachable destinations
+    i_0_rcbn <-
+      intervene_cpm_every_gene(rcbn, "CBN",
+                               kill_gene_funct = kill_gene_by_params_to_0,
+                               verbose = TRUE)
+    i_0_rhes <-
+      intervene_cpm_every_gene(rhes, "HESBCN",
+                               kill_gene_funct = kill_gene_by_params_to_0,
+                               verbose = TRUE)
 
-        stop_unless_intervention_identical(i_0_rcbn, i_rcbn)
-        stop_unless_intervention_identical(i_0_rhes, i_rhes)
-        stop_unless_intervention_identical(i_0_rcbn_f, i_rcbn_f)
-        stop_unless_intervention_identical(i_0_rhes_f, i_rhes_f)
+    i_0_rcbn_f <-
+      intervene_cpm_every_gene(rcbn_f[[1]]$other, "CBN",
+                               kill_gene_funct = kill_gene_by_params_to_0,
+                               verbose = TRUE)
+    i_0_rhes_f <-
+      intervene_cpm_every_gene(rhes_f[[1]]$other, "HESBCN",
+                               kill_gene_funct = kill_gene_by_params_to_0,
+                               verbose = TRUE)
+    i_0_rot <-
+      intervene_cpm_every_gene(rot, "OT",
+                               kill_gene_funct = kill_gene_by_params_to_0,
+                               verbose = TRUE)
+    i_0_rdbn_d <-
+      intervene_cpm_every_gene(rdbn_d, "OncoBN",
+                               kill_gene_funct = kill_gene_by_params_to_0,
+                               verbose = TRUE)
+    i_0_rdbn_c <-
+      intervene_cpm_every_gene(rdbn_c, "OncoBN",
+                               kill_gene_funct = kill_gene_by_params_to_0,
+                               verbose = TRUE)
+    i_0_rmhn <-
+      intervene_cpm_every_gene(rmhn, "MHN",
+                               kill_gene_funct = kill_gene_by_params_to_0,
+                               verbose = TRUE)
 
-        stop_unless_intervention_identical(i_0_rot, i_rot)
-        stop_unless_intervention_identical(i_0_rdbn_d, i_rdbn_d)
-        stop_unless_intervention_identical(i_0_rdbn_c, i_rdbn_c)
-        stop_unless_intervention_identical(i_0_rmhn, i_rmhn)
-    }
+    ## Yes, it detects failures. For example
+    ## stop_unless_intervention_identical(i_0_rcbn, i_0_rot)
+    ## stop_unless_intervention_identical(i_0_rdbn_c, i_0_rdbn_d)
+
+    stop_unless_intervention_identical(i_0_rcbn, i_rcbn)
+    stop_unless_intervention_identical(i_0_rhes, i_rhes)
+    stop_unless_intervention_identical(i_0_rcbn_f, i_rcbn_f)
+    stop_unless_intervention_identical(i_0_rhes_f, i_rhes_f)
+
+    stop_unless_intervention_identical(i_0_rot, i_rot)
+    stop_unless_intervention_identical(i_0_rdbn_d, i_rdbn_d)
+    stop_unless_intervention_identical(i_0_rdbn_c, i_rdbn_c)
+    stop_unless_intervention_identical(i_0_rmhn, i_rmhn)
+  }
 })
 
 
 ### CBN and H-ESBCN: intervene by modifying the fitness landscape identical to DAG intervention
 
 local({
-    set.seed(NULL)
-    ## Run a few times
-    total_iters <- 10
-    cat("CBN and H-ESBCN: intervene by modifying the fitness landscape identical to DAG intervention")
-    for (i in 1:total_iters) {
-        cat("\n #################### Doing iteration ", i, "\n\n")
+  set.seed(NULL)
+  ## Run a few times
+  total_iters <- 10
+  cat("CBN and H-ESBCN: intervene by modifying the fitness landscape identical to DAG intervention")
+  for (i in 1:total_iters) {
+    cat("\n #################### Doing iteration ", i, "\n\n")
 
-        ## Generate fitness landscapes
-        rcbn_f_2 <- suppressMessages(generate_n_f_landscape_requir(1, 7, "CBN"))
-        rhes_f_2 <- suppressMessages(
-            generate_n_f_landscape_requir(1, 7, "HESBCN",
-                                          hesbcn_relations = c("AND", "OR", "XOR")))
+    ## Generate fitness landscapes
+    rcbn_f_2 <- suppressMessages(generate_n_f_landscape_requir(1, 7, "CBN"))
+    rhes_f_2 <- suppressMessages(
+      generate_n_f_landscape_requir(1, 7, "HESBCN",
+                                    hesbcn_relations = c("AND", "OR", "XOR")))
 
-        ## Intervene on the fitness landscape
-        fl_i_rcbn_f_2 <- intervene_fitness_landscape_every_gene(rcbn_f_2[[1]])
-        fl_i_rhes_f_2 <- intervene_fitness_landscape_every_gene(rhes_f_2[[1]])
+    ## Intervene on the fitness landscape
+    fl_i_rcbn_f_2 <- intervene_fitness_landscape_every_gene(rcbn_f_2[[1]])
+    fl_i_rhes_f_2 <- intervene_fitness_landscape_every_gene(rhes_f_2[[1]])
 
-        ## Intervene via the DAG
-        i_rcbn_f_2 <- intervene_cpm_every_gene(rcbn_f_2[[1]]$other, "CBN",
-                                               verbose = TRUE)
-        i_rhes_f_2 <- intervene_cpm_every_gene(rhes_f_2[[1]]$other, "HESBCN",
-                                               verbose = TRUE)
+    ## Intervene via the DAG
+    i_rcbn_f_2 <- intervene_cpm_every_gene(rcbn_f_2[[1]]$other, "CBN",
+                                           verbose = TRUE)
+    i_rhes_f_2 <- intervene_cpm_every_gene(rhes_f_2[[1]]$other, "HESBCN",
+                                           verbose = TRUE)
 
-        ## Check identical
-        stop_unless_intervention_identical(fl_i_rcbn_f_2, i_rcbn_f_2)
-        stop_unless_intervention_identical(fl_i_rhes_f_2, i_rhes_f_2)
-    }
+    ## Check identical
+    stop_unless_intervention_identical(fl_i_rcbn_f_2, i_rcbn_f_2)
+    stop_unless_intervention_identical(fl_i_rhes_f_2, i_rhes_f_2)
+  }
 })
 
 
@@ -364,31 +370,31 @@ local({
 ## Remember: DO NOT USE THIS in general as limited to a few methods
 
 local({
-    set.seed(NULL)
-    ## Run a few times
-    total_iters <- 10
-    cat("CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervened gene")
-    for (i in 1:total_iters) {
-        cat("\n #################### Doing iteration ", i, "\n\n")
-        ## If you set.seed(1) you get CBN to have all depend on A
+  set.seed(NULL)
+  ## Run a few times
+  total_iters <- 10
+  cat("CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervened gene")
+  for (i in 1:total_iters) {
+    cat("\n #################### Doing iteration ", i, "\n\n")
+    ## If you set.seed(1) you get CBN to have all depend on A
 
-        ## Generate models
-        rcbn <- evamtools::random_evam(7, model = "CBN")
-        rhes <- evamtools::random_evam(7, model = "HESBCN")
-        rmhn <- evamtools::random_evam(7, model = "MHN")
+    ## Generate models
+    rcbn <- evamtools::random_evam(7, model = "CBN")
+    rhes <- evamtools::random_evam(7, model = "HESBCN")
+    rmhn <- evamtools::random_evam(7, model = "MHN")
 
-        ## Intervention with standard procedure
-        i_rcbn <- intervene_cpm_every_gene(rcbn, "CBN", verbose = TRUE)
-        i_rhes <- intervene_cpm_every_gene(rhes, "HESBCN", verbose = TRUE)
-        i_rmhn <- intervene_cpm_every_gene(rmhn, "MHN", verbose = TRUE)
+    ## Intervention with standard procedure
+    i_rcbn <- intervene_cpm_every_gene(rcbn, "CBN", verbose = TRUE)
+    i_rhes <- intervene_cpm_every_gene(rhes, "HESBCN", verbose = TRUE)
+    i_rmhn <- intervene_cpm_every_gene(rmhn, "MHN", verbose = TRUE)
 
-        ## Intervention rm genotypes from trm
-        i_rm_trm_rcbn <- intervene_cpm_trm_rm_every_gene(rcbn, "CBN")
-        i_rm_trm_rhes <- intervene_cpm_trm_rm_every_gene(rhes, "HESBCN")
-        i_rm_trm_rmhn <- intervene_cpm_trm_rm_every_gene(rmhn, "MHN")
+    ## Intervention rm genotypes from trm
+    i_rm_trm_rcbn <- intervene_cpm_trm_rm_every_gene(rcbn, "CBN")
+    i_rm_trm_rhes <- intervene_cpm_trm_rm_every_gene(rhes, "HESBCN")
+    i_rm_trm_rmhn <- intervene_cpm_trm_rm_every_gene(rmhn, "MHN")
 
-        stop_unless_intervention_identical(i_rcbn, i_rm_trm_rcbn)
-        stop_unless_intervention_identical(i_rhes, i_rm_trm_rhes)
-        stop_unless_intervention_identical(i_rmhn, i_rm_trm_rmhn)
-    }
+    stop_unless_intervention_identical(i_rcbn, i_rm_trm_rcbn)
+    stop_unless_intervention_identical(i_rhes, i_rm_trm_rhes)
+    stop_unless_intervention_identical(i_rmhn, i_rm_trm_rmhn)
+  }
 })

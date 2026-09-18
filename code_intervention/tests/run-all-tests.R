@@ -4,8 +4,10 @@
 ## sourced from there. Each test file manages its own setwd("../") to
 ## reach code_intervention/ for sourcing intervention code.
 ##
-##   cd tests && Rscript run-all-tests.R
-##   source("run-all-tests.R")   # from R with tests/ as wd
+
+##   cd tests &&  R --vanilla -f run-all-tests.R &> run-all-tests.Rout
+##   from R with tests/ as wd
+
 
 library(testthat)
 
