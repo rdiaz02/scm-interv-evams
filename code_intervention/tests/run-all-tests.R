@@ -9,6 +9,28 @@
 ##   from R with tests/ as wd
 
 
+
+## This is probably not needed, since in each individual file
+## but I've tripped on this so often, that it is worth adding it here
+## too.
+## options(intervention_every_gene_cores = parallel::detectCores())
+## markovchain, Armadillo/BLAS solve, and genots_from_trm, etc,
+## can be multithreaded and we are using mclapply with detectCores()
+## The Sys.setenv call will affect programs called from R via system()
+## or system2(). But this won't affect the BLAS loaded when R starts
+## and to limit those threads we use RhpcBLASctl.
+Sys.setenv(OMP_NUM_THREADS = "1",
+           OPENBLAS_NUM_THREADS = "1",
+           MKL_NUM_THREADS = "1")
+if (requireNamespace("RhpcBLASctl", quietly = TRUE)) {
+  RhpcBLASctl::blas_set_num_threads(1)
+  RhpcBLASctl::omp_set_num_threads(1)
+} else {
+  message("RhpcBLASctl not installed: BLAS/OpenMP threads not limited")
+}
+
+version
+date()
 library(testthat)
 
 
