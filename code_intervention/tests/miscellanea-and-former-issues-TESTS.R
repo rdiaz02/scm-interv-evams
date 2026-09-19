@@ -581,4 +581,73 @@ test_that("Issue 1 is solved, additional", {
   })
 })
 
+
+### rm_genots_trm matches genes exactly, not as parts of names
+##  rm_genots_trm (in intervention.R) removes, from a transition rate
+##  matrix, all genotypes that contain a gene. Until 2026-09-19 it
+##  found those genotypes with grep(gene, fixed = TRUE), which matches
+##  parts of names. So killing gene "T" (or "W") also removed the
+##  wildtype, "WT", and killing gene "G1" also removed genotypes with
+##  gene "G10". Now each genotype name is split into its genes, and the
+##  gene must match one of them exactly. These small hand-made
+##  matrices would have failed with the old code.
+test_that("rm_genots_trm matches genes exactly, not as parts of names", {
+  ## Genes T and W. The old code, killing T, removed WT, T, and "T, W".
+  genots_tw <- c("WT", "T", "W", "T, W")
+  trm_tw <- matrix(0, nrow = 4, ncol = 4,
+                   dimnames = list(genots_tw, genots_tw))
+  trm_tw["WT", "T"] <- 1
+  trm_tw["WT", "W"] <- 2
+  trm_tw["T", "T, W"] <- 3
+  trm_tw["W", "T, W"] <- 4
+
+  ## Kill T: keep WT and W
+  out_T <- rm_genots_trm(list(CBN_trans_rate_mat = trm_tw), "T", "CBN")
+  expect_true(identical(rownames(out_T), c("WT", "W")))
+  expect_true(all.equal(out_T,
+                        trm_tw[c("WT", "W"), c("WT", "W"), drop = FALSE]))
+
+  ## Kill W: keep WT and T
+  out_W <- rm_genots_trm(list(CBN_trans_rate_mat = trm_tw), "W", "CBN")
+  expect_true(identical(rownames(out_W), c("WT", "T")))
+  expect_true(all.equal(out_W,
+                        trm_tw[c("WT", "T"), c("WT", "T"), drop = FALSE]))
+
+  ## Genes G1 and G10. The old code, killing G1, also removed G10.
+  genots_g <- c("WT", "G1", "G10", "G1, G10")
+  trm_g <- matrix(0, nrow = 4, ncol = 4,
+                  dimnames = list(genots_g, genots_g))
+  trm_g["WT", "G1"] <- 1
+  trm_g["WT", "G10"] <- 2
+  trm_g["G1", "G1, G10"] <- 3
+  trm_g["G10", "G1, G10"] <- 4
+
+  ## Kill G1: keep WT and G10
+  out_G1 <- rm_genots_trm(list(MHN_trans_rate_mat = trm_g), "G1", "MHN")
+  expect_true(identical(rownames(out_G1), c("WT", "G10")))
+  expect_true(all.equal(out_G1,
+                        trm_g[c("WT", "G10"), c("WT", "G10"), drop = FALSE]))
+
+  ## Kill G10: keep WT and G1
+  out_G10 <- rm_genots_trm(list(MHN_trans_rate_mat = trm_g), "G10", "MHN")
+  expect_true(identical(rownames(out_G10), c("WT", "G1")))
+  expect_true(all.equal(out_G10,
+                        trm_g[c("WT", "G1"), c("WT", "G1"), drop = FALSE]))
+
+  ## A gene that is in no genotype: warning, and the matrix is returned
+  ## unchanged
+  expect_warning(out_none <- rm_genots_trm(list(CBN_trans_rate_mat = trm_tw),
+                                           "Z", "CBN"),
+                 "No genotypes to remove?", fixed = TRUE)
+  expect_true(all.equal(out_none, trm_tw))
+
+  ## Row names and column names that differ (here, in their order) must
+  ## give an error, since one index is used for both rows and columns
+  trm_bad <- trm_tw
+  colnames(trm_bad) <- rev(genots_tw)
+  expect_error(rm_genots_trm(list(CBN_trans_rate_mat = trm_bad), "T", "CBN"),
+               "rownames and colnames of the transition rate matrix differ",
+               fixed = TRUE)
+})
+
 set.seed(NULL)

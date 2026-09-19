@@ -227,20 +227,26 @@ intervene_fitness_landscape_every_gene <- function(x,
 ## DO NOT USE THIS in general as limited to a few methods.
 rm_genots_trm <- function(x, gene, method) {
   trm <- x[[paste0(method, "_trans_rate_mat")]]
-  rown <- rownames(trm)
-  coln <- colnames(trm)
-  rm_rown <- grep(gene, rown, fixed = TRUE)
-  rm_coln <- grep(gene, coln, fixed = TRUE)
-
-  if (length(rm_rown) != length(rm_coln))
-      stop("length(rm_rown) != length(rm_coln)")
-  if (length(rm_rown) == 0) {
+  ## Row names and column names are the genotypes. They must be the
+  ## same and in the same order, so that one index works for both.
+  if (!identical(rownames(trm), colnames(trm)))
+    stop("rownames and colnames of the transition rate matrix differ")
+  ## Genotype names are genes separated by ", " (e.g., "A, B, D"),
+  ## and "WT" for the wildtype. We split each genotype name into its
+  ## genes and look for an exact match of the gene. We do not search
+  ## for the gene name inside the genotype name (e.g., with grep):
+  ## gene "W" would then match "WT", and gene "G1" would match "G10".
+  genes_in_genots <- stringi::stri_split_fixed(rownames(trm), ", ")
+  rm_genots <- which(vapply(genes_in_genots,
+                            function(z) gene %in% z,
+                            logical(1)))
+  if (length(rm_genots) == 0) {
     warning("No genotypes to remove?")
     trm2 <- trm
   } else {
     ## Should always be square
     ## If it ends up with 1 row and 1 column, and just a 0, it means only WT
-    trm2 <- trm[-rm_rown, -rm_coln, drop = FALSE]
+    trm2 <- trm[-rm_genots, -rm_genots, drop = FALSE]
   }
   return(trm2)
 }
