@@ -650,4 +650,60 @@ test_that("rm_genots_trm matches genes exactly, not as parts of names", {
                fixed = TRUE)
 })
 
+
+### rm_genots_trm will stop (refuse to work) if passed a transition rate matrix with a diagonal
+
+##  Our transition rate matrices have a zero diagonal (the diagonal, when
+##  needed, is computed as minus the sum of the rest of the row). If
+##  rm_genots_trm received a matrix carrying the diagonal of the full
+##  matrix, removing rows and columns would keep that diagonal, and we
+##  would silently get a chain that loses probability, not the intervention
+##  we want. Since 2026-09-19, rm_genots_trm stops if the diagonal is not
+##  zero. This tests that rm_genots_trm will refuse to work (failing with a
+##  stop) when given a transition rate matrix that has a non-zero diagonal.
+
+test_that("rm_genots_trm will stop (refuse to work) if passed a transition rate matrix with a diagonal", {
+    genots_tw <- c("WT", "T", "W", "T, W")
+    trm_tw <- matrix(0, nrow = 4, ncol = 4,
+                     dimnames = list(genots_tw, genots_tw))
+    trm_tw["WT", "T"] <- 1
+    trm_tw["WT", "W"] <- 2
+    trm_tw["T", "T, W"] <- 3
+    trm_tw["W", "T, W"] <- 4
+
+    ## The zero-diagonal matrix is accepted
+    out_T <- rm_genots_trm(list(CBN_trans_rate_mat = trm_tw), "T", "CBN")
+    expect_true(identical(rownames(out_T), c("WT", "W")))
+
+    ## The same matrix with the full diagonal (minus the row sums): error
+    trm_diag <- trm_tw
+    diag(trm_diag) <- -rowSums(trm_tw)
+    expect_error(rm_genots_trm(list(CBN_trans_rate_mat = trm_diag),
+                               "T", "CBN"),
+                 "isTRUE(all(diag(trm) == 0)) is not TRUE",
+                 fixed = TRUE)
+
+    ## A single non-zero entry in the diagonal is enough for an error
+    trm_one <- trm_tw
+    trm_one["W", "W"] <- -4
+    expect_error(rm_genots_trm(list(CBN_trans_rate_mat = trm_one),
+                               "T", "CBN"),
+                 "isTRUE(all(diag(trm) == 0)) is not TRUE",
+                 fixed = TRUE)
+
+    ## Also for a real model from evamtools: the stored transition rate
+    ## matrix is accepted, and the same matrix with its diagonal is not
+    rcbn <- evamtools::random_evam(4, model = "CBN")
+    trm_cbn <- as.matrix(rcbn$CBN_trans_rate_mat)
+    expect_true(all(diag(trm_cbn) == 0))
+    out_A <- rm_genots_trm(list(CBN_trans_rate_mat = trm_cbn), "A", "CBN")
+    expect_true(nrow(out_A) < nrow(trm_cbn))
+    trm_cbn_diag <- trm_cbn
+    diag(trm_cbn_diag) <- -rowSums(trm_cbn)
+    expect_error(rm_genots_trm(list(CBN_trans_rate_mat = trm_cbn_diag),
+                               "A", "CBN"),
+                 "isTRUE(all(diag(trm) == 0)) is not TRUE",
+                 fixed = TRUE)
+})
+
 set.seed(NULL)

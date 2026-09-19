@@ -231,6 +231,25 @@ rm_genots_trm <- function(x, gene, method) {
   ## same and in the same order, so that one index works for both.
   if (!identical(rownames(trm), colnames(trm)))
     stop("rownames and colnames of the transition rate matrix differ")
+  ## Our transition rate matrices have a zero diagonal: they store only
+  ## the rates between different genotypes, and the diagonal, when
+  ## needed, is computed as minus the sum of the other entries of the
+  ## row. This is crucial here.
+  ## Suppose the new matrix kept the diagonal of the full matrix. That
+  ## diagonal is minus the sum of all the rates in the row of the full
+  ## matrix, including the rates to the genotypes we remove. After the
+  ## removal those rates are gone from the row, but the old diagonal
+  ## still counts them, and that is why probability is lost: we would
+  ## have a chain that loses probability, not the intervention we want.
+  ## The convention that is followed in the code is always the same:
+  ## diagonals are 0 because they are -sum of the rest of the row,
+  ## and thus they contain implicit info from the rest of the row; if
+  ## the diagonal is not 0, it is easy to forget this fact; if it is 0 and
+  ## we need the diagonal, it is easy to compute the sum on demand.
+  ## So we test things are sane here (again ---this is tested elsewhere
+  ## in the code too):
+  stopifnot(isTRUE(all(diag(trm) == 0)))
+
   ## Genotype names are genes separated by ", " (e.g., "A, B, D"),
   ## and "WT" for the wildtype. We split each genotype name into its
   ## genes and look for an exact match of the gene. We do not search
@@ -296,11 +315,15 @@ intervene_cpm_trm_rm_every_gene <- function(cpm_output,
           if (nrow(trm_after_intervention) > 1) {
               tmp_genot_freqs <-
                   genots_from_trm(trm_after_intervention, t = t)
-              ## Compute embedded chain from Q matrix (negative diagonal,
-              ## rows sum to 0): zero out diagonal to get off-diagonal
-              ## rates, then row-normalize.
+              ## Compute the embedded chain from the transition rate
+              ## matrix: divide each row by its sum. The diagonal
+              ## should be zero, so each row sum is the sum of the
+              ## rates to the other genotypes.
               off_q <- trm_after_intervention
-              diag(off_q) <- 0
+              ## Check the diagonal is zero. This is dead code, as this
+              ## would be caught earlier, in rm_genots_trm; left here
+              ## to make it clear what we expect.
+              stopifnot(isTRUE(all(diag(off_q) == 0)))
               rs <- rowSums(off_q)
               embedded <- off_q
               embedded[rs > 0, ] <- off_q[rs > 0, ] / rs[rs > 0]
