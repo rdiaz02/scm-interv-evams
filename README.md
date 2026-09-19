@@ -1,6 +1,8 @@
+## What this is
 R code for [A structural causal framework for interventions on evolutionary accumulation models](http://arxiv.org/abs/2606.12597), by Diaz-Uriarte, Arroyo, and Johnston.
 
 
+## Dependencies
 To run the code and all tests you'll need to install:
 - [evamtools](https://github.com/rdiaz02/EvAM-Tools). Because of its dependencies, that package is not available from CRAN or BioConductor. Installation is detailed in  [Installing and running EvAM Tools](https://github.com/rdiaz02/EvAM-Tools#installing-and-running). If you are on Windows, the fastest route might be to use a Docker image (explained also in that link). If you are on macOS (at least macOS on Apple silicon), from what we have been told, the only system dependency is graphviz from Homebrew, which Rgraphviz and then OncoSimulR need.
 - [hyperhmm](https://github.com/StochasticBiology/hyperhmm) package. From R, you can do `remotes::install_github("StochasticBiology/hyperhmm")` (if you do not have the `remotes` package installed, install it first by doing `install.packages("remotes")`).
@@ -11,4 +13,6 @@ To run the code and all tests you'll need to install:
 
 ## Running the tests
 
-The recommended way is to change to the test directory (`code_intervention/tests`) and do, from a terminal, `R --vanilla -f run-all-tests.R &> run-all-tests.Rout`. The tests take between 35 and 45 minutes, depending on hardware.
+The recommended way is to change to the test directory (`code_intervention/tests`) and do, from a terminal, `R --vanilla -f run-all-tests.R &> run-all-tests.Rout`. The tests take between 35 and 45 minutes, depending on hardware and parallelization.
+
+A reference output from a full run (R 4.5.3) is in `code_intervention/tests/run-all-tests.Rout`. The number of checks varies slightly between runs because some tests use random models.
