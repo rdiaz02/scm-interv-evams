@@ -21,6 +21,90 @@
 ##  - intervene on every gene in a fitness landscape
 
 
+### Notation, equivalences of killing, mapping to the notation in the manuscript
+
+
+## The same intervention on gene g can be implemented in more than one way,
+## and all of them give the same predictions. This is what the paper ("A
+## structural causal framework for interventions on evolutionary
+## accumulation models" https://arxiv.org/pdf/2606.12597) calls each of
+## them, and where each one is in the code. The equivalence between them is
+## checked in tests/kill-gene-equivalences-TESTS.R and in the per-model
+## files tests/kill-CBN-TESTS.R, kill-HESBCN-TESTS.R, kill-MHN-TESTS.R,
+## kill-OT-TESTS.R, kill-OncoBN-TESTS.R.
+
+## The main entry point is intervene_cpm_every_gene (this file). Its
+## argument kill_gene_funct defaults to kill_gene, the default
+## procedures below. Passing kill_gene_by_params_to_0 gives the
+## parameters-to-0 route, etc.
+
+#### The canonical way: set parameter to 0: DAG_{lambda_g = 0}, Theta_{g, g} = 0
+
+## The "canonical definition" in the paper uses the idea of "set the
+## parameter to 0" which is a very direct mapping from the do operator.
+
+## The common entry point is : kill_gene_by_params_to_0, with specific
+## versions according to model.
+
+## DAG_{lambda_g = 0}, for CBN and H-ESBCN, and the same idea for OT
+##   (pi_{parent(g), g} = 0) and OncoBN (theta_g = 0): set to 0 the
+##   parameter of the edges that lead into g. Function
+##   kill_gene_DAG_param_0, called from kill_gene_by_params_to_0, in
+##   file kill-gene-and-output-from-cpm.R. We use this to check that
+##   the default gives the same predictions.
+
+## Theta_{g, g} = 0, for MHN: since we store log-thetas, this means
+##   theta_{g, g} = -Inf. Function kill_gene_MHN_theta_minus_Inf,
+##   called from kill_gene_by_params_to_0, in file
+##   kill-gene-and-output-from-cpm.R. Again, used for checking.
+
+#### Removing entries "in the model": DAG_{-g}, Theta_{-g}
+
+## For computational reasons, this is what the code uses by default.
+
+## DAG_{-g}, for CBN, H-ESBCN, OT and OncoBN: remove, from the DAG of
+##   restrictions, the node of gene g and any other node that only
+##   appears, in accessible genotypes, together with g. This is the
+##   default. Function kill_gene_DAG, called from kill_gene, in file
+##   kill-gene-and-output-from-cpm.R.
+
+
+## Theta_{-g}, for MHN: remove the row and the column of gene g from
+##   the matrix of log-thetas. This is the default. Function
+##   kill_gene_MHN, called from kill_gene, in file
+##   kill-gene-and-output-from-cpm.R.
+
+#### Removing entries from the transition rate matrix. Q_{-g}
+
+## Limited to models with transition rate matrix, so CBN, H-ESBCN, MHN
+
+## Q_{-g}, for CBN, H-ESBCN and MHN: remove, from the transition rate
+##   matrix, the rows and columns of all genotypes that contain gene
+##   g. Function rm_genots_trm, called from
+##   intervene_cpm_trm_rm_every_gene, both in this file. This one is
+##   only used in the tests. See file Q_g_paranoid_checks.org.
+
+
+#### HyperHMM, R_{-g}
+
+## R_{-g}, for HyperHMM: the conditional transition matrix without the
+##   genotypes with gene g. Function
+##   kill_gene_HyperHMM_drop_unreachable, called from kill_gene, in
+##   file kill-gene-and-output-from-cpm.R. HyperHMM has no equivalent
+##   parameter to set to 0.
+
+
+#### Modifying the fitness landscape, for CBN and H-ESBCN under SSWM:
+
+##   As said: this requires a fitness landscape, etc. We make lethal all
+##   genotypes with gene g.
+
+##   Function  kill_gene_fitness_landscape, called from
+##   intervene_fitness_landscape_every_gene (this file).
+
+
+
+
 
 
 
