@@ -654,12 +654,12 @@ test_that("OncoBN OR (DBN-mode): trans_mat and HP from hand derivation", {
 
 ### How hitting probabilities are tested across the codebase
 ##
-## The relevant correctness claim for downstream statistics (O_genot in
-## compute_intervention_objectives, code_evam_simul_interv/) is "HP is
-## correct for a given TRM / weighted graph / model".  Intervention does
-## not enter this claim: an intervention just modifies the model to
-## produce a new model in the same class.  So if HP-from-a-given-model is
-## correct, HP-after-intervention is correct by composition.
+## The relevant correctness claim for downstream statistics (O_genot or
+## whatever) is "HP is correct for a given TRM / weighted graph / model".
+## Intervention does not enter this claim: an intervention just modifies
+## the model to produce a new model in the same class. So if
+## HP-from-a-given-model is correct, HP-after-intervention is correct by
+## composition.
 ##
 ## The pipeline factors cleanly into two steps:
 ##
