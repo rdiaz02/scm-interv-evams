@@ -88,12 +88,12 @@
 ## the genotypes that survive.
 ##
 ## Why the difference? Because of what is primary in each model. In
-## HyperHMM there are no parameters: we take the implicit, underlying,
-## latent rates to be the primary structural feature, so killing means
-## turning to zero the moves into the affected genotypes. In OT and
-## OncoBN there are parameters (the pi of OT, for example), so we set to
-## zero the affected one, and then compute the rest much like we do for
-## CBN.
+## HyperHMM there are no parameters: a step is an attempt at mutation, the
+## entries of $R$ are probabilities per step, killing sets one of them to 0
+## and leaves the others alone, and the remainder stays on the diagonal
+## because the row must sum to 1. In OT and OncoBN there are parameters
+## (the pi of OT, for example), so we set to zero the affected one, and
+## then compute the rest much like we do for CBN.
 
 ## Yes, modularity, in both OT/OncoBN and HyperHMM is not as tenable as for
 ## CBN/H-ESBCN. But, for predictions under interventions, the most sensible
