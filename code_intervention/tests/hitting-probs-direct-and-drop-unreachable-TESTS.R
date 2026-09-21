@@ -125,10 +125,10 @@ same_on_common <- function(a, b, tol = 1e-6) {
                      tolerance = tol, check.attributes = FALSE))
 }
 
-## Independent *GROUND TRUTH*: Monte-Carlo estimate of P(ever reach each state
-## from WT). We simulate the JUMP chain (skip self-loops: they never change
+## Independent *ground truth*: Monte-Carlo estimate of P(ever reach each state
+## from WT). We simulate the chain (skip self-loops: they never change
 ## which states are visited), so it is fast regardless of how much mass sits on
-## the diagonal. NOTE: this is exact for every OFF-diagonal target, but returns
+## the diagonal. Note: this is exact for every off-diagonal target, but returns
 ## 0 for WT itself (it skips WT's self-loop "return"). So all comparisons below
 ## use max_diff_off_wt(), which excludes the WT self-entry -- a self-loop
 ## return-probability convention, checked separately against markovchain in the
