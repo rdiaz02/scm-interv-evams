@@ -1,0 +1,275 @@
+#+TITLE: Q_{-g}: how the code builds it, and where the tests check it
+#+DATE: 2026-09-19
+
+* What this is
+
+Q_{-g} is the transition rate matrix after an intervention on gene g: the full transition rate matrix Q with all genotypes that contain g removed. This is the third way of intervening in the paper ("A structural causal framework for interventions on evolutionary accumulation models", https://arxiv.org/abs/2606.12597 , section on CBN and H-ESBCN: "removing, from the fitted transition rate matrix Q, all genotypes with gene g mutated"; also for MHN). The other two are modifying the DAG (or Theta, for MHN) and setting lambda_g = 0 (Theta_gg = 0 for MHN).
+
+The question (2026-09-19): "removing rows and columns" can mean two different things for a transition rate matrix.
+
+1. The off-diagonal entries are copied, and the diagonal is recomputed on the smaller matrix (minus the sum of the rest of the row). This is the intervention we want: transitions into genotypes with g never happen. It is the same as Q with lambda_g = 0, restricted to the genotypes without g.
+
+2. The off-diagonal entries are copied, and the diagonal of the full matrix is kept. The old diagonal is minus the sum of all the rates in the row of the full matrix, including the rates to the genotypes we remove. After the removal those rates are gone from the row, but the old diagonal still counts them, so probability is lost. This is a chain that loses probability ("killed" chain), not the intervention we want.
+
+Answer: the code does 1, by construction, because our transition rate matrices have a zero diagonal. The diagonal is only computed when needed, from the rest of the row. And 2 cannot happen silently: a matrix with a non-zero diagonal makes the code stop, in several places.
+
+I've always thought about 1. 2 seems obviously wrong to me (and for me the diagonal is always a "derived" quantity: the -sum of the rest; I always think of it as secondary, derived, something you compute from the rest, not something you look at because of its intrinsic interest ---yeah, if you want to know things like time to next event, whichever event, you use that diagonal, but only because it puts together the rest of rates--- and always something one checks it really adds to what it should). A reviewer pointed out that what Q_{-g} was wasn't clear. Now I can see where the ambiguity could be, and how it is bad. So this file puts together all the different places where the code for Q_{-g} does stuff, as well as checks that it does what it should.
+
+How to read the locations below: each one gives the file (path from the repository root), the line number(s), and the text of the first line cited. If lines are added or removed, search for that text. Line numbers are as of 2026-09-21.
+
+Note: the Q_{-g} route is only used in the tests, to check the other routes. The results (paper, simulations) use kill_gene (the DAG, or Theta for MHN).
+
+* What the code does to build Q_{-g}
+
+** 1. intervene_cpm_trm_rm_every_gene: the Q_{-g} route
+
+- code_intervention/intervention.R:364 (function starts here; the comment before it starts at line 357)
+  #+begin_src R
+intervene_cpm_trm_rm_every_gene <- function(cpm_output,
+  #+end_src
+  The tests call this "procedure 3". For each gene it does the three steps below (2 to 4).
+
+- code_intervention/intervention.R:398, the call to rm_genots_trm
+  #+begin_src R
+          trm_after_intervention <- rm_genots_trm(cpm_output, gene, method)
+  #+end_src
+
+- code_intervention/intervention.R:400-401, the genotype frequencies from the reduced matrix
+  #+begin_src R
+              tmp_genot_freqs <-
+  #+end_src
+  (line 401 is =genots_from_trm(trm_after_intervention, t = t)=)
+
+- code_intervention/intervention.R:402-417, the hitting probabilities from the embedded chain (see step 4 below)
+  #+begin_src R
+              ## Compute the embedded chain from the transition rate
+  #+end_src
+
+- code_intervention/intervention.R:423, when only WT is left (all other genotypes removed), the remaining 1 x 1 matrix must be a 0
+  #+begin_src R
+              stopifnot(as.vector(trm_after_intervention) == 0)
+  #+end_src
+
+
+** 2. rm_genots_trm: removes the genotypes with gene g
+
+- code_intervention/intervention.R:312-355 (the comment before the function is at lines 309-311)
+  #+begin_src R
+rm_genots_trm <- function(x, gene, method) {
+  #+end_src
+
+- code_intervention/intervention.R:313, takes the stored transition rate matrix of the model
+  #+begin_src R
+  trm <- x[[paste0(method, "_trans_rate_mat")]]
+  #+end_src
+
+- code_intervention/intervention.R:314-317, stops if row names and column names differ (one index is used for both rows and columns). Added 2026-09-19.
+  #+begin_src R
+  ## Row names and column names are the genotypes. They must be the
+  #+end_src
+  (the check itself is at line 316: =if (!identical(rownames(trm), colnames(trm)))=)
+
+- code_intervention/intervention.R:318-335, stops if the diagonal is not zero. The comment explains why (the "killed" chain of point 2 in "What this is"). Added 2026-09-19.
+  #+begin_src R
+  ## Our transition rate matrices have a zero diagonal: they store only
+  #+end_src
+  The check itself is at line 335:
+  #+begin_src R
+  stopifnot(isTRUE(all(diag(trm) == 0)))
+  #+end_src
+
+- code_intervention/intervention.R:337-345, finds the genotypes that contain the gene. Each genotype name ("A, B, D"; "WT" for the wildtype) is split into its genes, and the gene must match one of them exactly. Until 2026-09-19 this used grep(gene, fixed = TRUE), which matches parts of names (gene "W" matched "WT", gene "G1" matched "G10"). Fixed 2026-09-19.
+  #+begin_src R
+  ## Genotype names are genes separated by ", " (e.g., "A, B, D"),
+  #+end_src
+
+- code_intervention/intervention.R:352, removes their rows and columns. The diagonal is not touched, because it is zero.
+  #+begin_src R
+    trm2 <- trm[-rm_genots, -rm_genots, drop = FALSE]
+  #+end_src
+
+
+** 3. The genotype frequencies: the diagonal is recomputed on the reduced matrix
+
+genots_from_trm sends the reduced matrix to one of two functions. Both expect a zero diagonal, stop if it is not zero, and compute the diagonal from the reduced matrix (so we get point 1 of "What this is").
+
+- code_intervention/trm.R:287-301, genots_from_trm
+  #+begin_src R
+genots_from_trm <- function(trm, t = NA,
+  #+end_src
+
+  - code_intervention/trm.R:296, if t is NA (the default: sampling time exponential with rate 1)
+    #+begin_src R
+    return(evamtools:::probs_from_trm(trm))
+    #+end_src
+
+  - code_intervention/trm.R:299, if a time t is given
+    #+begin_src R
+    return(genots_at_t_from_trm(trm = trm, t = t))
+    #+end_src
+
+- evamtools 3.3.3, probs_from_trm. Source file: R/sample_random_evam.R
+
+  - line 777, the function
+    #+begin_src R
+probs_from_trm <- function(x,
+    #+end_src
+
+  - line 784, stops with "Lower triangular not 0. Is this transposed?" if any entry on or below the diagonal is not zero (tril includes the diagonal)
+    #+begin_src R
+    if (Matrix::nnzero(tril(x)))
+    #+end_src
+
+  - line 787, computes the diagonal (on the transposed matrix, Q <- t(x), line 786)
+    #+begin_src R
+    diag(Q) <- -1 * colSums(Q)
+    #+end_src
+
+- code_intervention/trm.R:248-253, genots_at_t_from_trm
+
+  - line 248, the function
+    #+begin_src R
+genots_at_t_from_trm <- function(trm, t) {
+    #+end_src
+
+  - line 250, stops if the diagonal is not zero (line 249 is the comment "## Recall our trms have zero in diagonal")
+    #+begin_src R
+  stopifnot(isTRUE(all(diag(trm) == 0)))
+    #+end_src
+
+  - line 253, computes the diagonal
+    #+begin_src R
+  diag(trm) <- -1 * rowSums(trm)
+    #+end_src
+
+
+** 4. The hitting probabilities: the diagonal plays no role
+
+- code_intervention/intervention.R:402-417. The embedded chain is the transition rate matrix with each row divided by its sum. With a zero diagonal, each row sum is the sum of the rates to the other genotypes.
+  #+begin_src R
+              ## Compute the embedded chain from the transition rate
+  #+end_src
+
+- code_intervention/intervention.R:406-410, checks the diagonal is zero. This is dead code (rm_genots_trm, line 335, would have stopped earlier), left to make clear what we expect. Until 2026-09-19 this was =diag(off_q) <- 0=, which did nothing because the diagonal was already zero (changed 2026-09-19).
+  #+begin_src R
+              off_q <- trm_after_intervention
+  #+end_src
+  The check itself is at line 410:
+  #+begin_src R
+              stopifnot(isTRUE(all(diag(off_q) == 0)))
+  #+end_src
+
+- code_intervention/intervention.R:414, the hitting probabilities from the embedded chain (hitting_probs_from_WT_both is at code_intervention/trm.R:707)
+  #+begin_src R
+              both <- hitting_probs_from_WT_both(embedded,
+  #+end_src
+
+
+* Where the tests check it
+
+The Q_{-g} route (intervene_cpm_trm_rm_every_gene) is compared, as a full structure (genotype frequencies and hitting probabilities), against the standard kill_gene, against setting lambda_g = 0 (or Theta_gg = 0), against intervening on the fitness landscape, and against models built by hand without the gene. The Q_{-g} route does not go through get_full_output, so it shares no key code with the other routes (see the comments in the test files cited below).
+
+** Equivalence and ground-truth tests
+
+1. code_intervention/tests/kill-gene-equivalences-TESTS.R:385-414. Random 7-gene CBN, H-ESBCN and MHN models, 10 iterations, every gene killed: Q_{-g} must be identical to the standard kill_gene.
+   #+begin_src R
+### CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervened gene
+   #+end_src
+   The comparisons are at lines 412-414:
+   #+begin_src R
+    stop_unless_intervention_identical(i_rcbn, i_rm_trm_rcbn)
+   #+end_src
+   stop_unless_intervention_identical is at code_intervention/tests/kill-gene-equivalences-TESTS.R:110:
+   #+begin_src R
+stop_unless_intervention_identical <- function(x, y) {
+   #+end_src
+   This block is inside local(), not test_that(), and uses stopifnot: a mismatch stops the file (it shows up as an error, not as a failed expectation).
+
+2. code_intervention/tests/kill-gene-equivalences-TESTS.R:228-248, inside test_that("kill gene from which all depend", ...) (line 123). Killing one gene leaves only WT (model m1 killing A; model m4 killing C). Q_{-g} must give WT only (lines 234-235 and 245-246) and must be identical to the fitness-landscape intervention (lines 237 and 248).
+   #+begin_src R
+  m1_tr_i <- intervene_cpm_trm_rm_every_gene(c(list(CBN_model = m1),
+   #+end_src
+
+3. code_intervention/tests/kill-CBN-TESTS.R:185-187, inside test_that("Simple CBN checks of structure (standard) killing and equiv of procedures", ...) (line 82). Models m1, m2, m3: Q_{-g} must equal the standard kill.
+   #+begin_src R
+  expect_equal(m1_int, m1_int_trm)
+   #+end_src
+   Lines 189-208 of the same file check the standard kill against the models built by hand without the gene:
+   #+begin_src R
+  gene_names <- sort(setdiff(union(m1$From, m1$To), "Root"))
+   #+end_src
+
+4. code_intervention/tests/kill-CBN-TESTS.R:383-417, function check_cbn_four_procedures. The four routes must agree: standard kill, lambda_g = 0, Q_{-g}, fitness landscape.
+   #+begin_src R
+check_cbn_four_procedures <- function(model, label = "") {
+   #+end_src
+   Q_{-g} is computed at line 402 and compared at line 414:
+   #+begin_src R
+  expect_equal(i1, i3, label = paste0("i1 vs i3", lbl))
+   #+end_src
+   It is called from test_that("CBN DAG_2", ...) to test_that("CBN DAG_7", ...), lines 430-458:
+   #+begin_src R
+test_that("CBN DAG_2", {
+   #+end_src
+
+5. code_intervention/tests/kill-HESBCN-TESTS.R:375-418, function check_hesbcn_four_procedures. The same four-way comparison.
+   #+begin_src R
+check_hesbcn_four_procedures <- function(model, label = "") {
+   #+end_src
+   Q_{-g} is computed at line 394 and compared at line 406:
+   #+begin_src R
+  expect_equal(i1, i3, label = paste0("i1 vs i3", lbl))
+   #+end_src
+   It is called from the DAG_2 to DAG_7 tests, lines 434-694, over every AND/OR/XOR combination:
+   #+begin_src R
+test_that("HESBCN DAG_2: 27 AND/OR/XOR combinations for H, I, A", {
+   #+end_src
+
+6. code_intervention/tests/kill-MHN-TESTS.R:109-128. Q_{-g} must equal the standard kill (and setting Theta to 0).
+   #+begin_src R
+test_that("MHN 4-gene: procedures 1, 2, 3 agree on all gene kills", {
+   #+end_src
+   Q_{-g} is computed at line 124 and compared at line 127:
+   #+begin_src R
+  expect_equal(i1, i3, label = "MHN i1 vs i3")
+   #+end_src
+   Line 143, in test_that("MHN 4-gene: ground-truth comparison for all gene kills", ...) (line 131), checks the standard kill against the model built by hand, theta[others, others]:
+   #+begin_src R
+    expected <- preds_from_mhn_theta(theta[others, others])
+   #+end_src
+
+
+** Tests of rm_genots_trm itself (added 2026-09-19)
+
+Both are at the end of code_intervention/tests/miscellanea-and-former-issues-TESTS.R.
+
+7. code_intervention/tests/miscellanea-and-former-issues-TESTS.R:585-651. Genes are matched exactly, not as parts of names. Small hand-made matrices with genes T and W, and with genes G1 and G10: killing T keeps WT and W; killing W keeps WT and T; killing G1 keeps WT and G10; killing G10 keeps WT and G1. Also: a gene that is in no genotype gives a warning and the matrix is returned unchanged; row names and column names that differ give an error. With the old grep code, 7 of the 11 checks fail (checked 2026-09-19).
+   #+begin_src R
+### rm_genots_trm matches genes exactly, not as parts of names
+   #+end_src
+   The test_that starts at line 594:
+   #+begin_src R
+test_that("rm_genots_trm matches genes exactly, not as parts of names", {
+   #+end_src
+
+8. code_intervention/tests/miscellanea-and-former-issues-TESTS.R:654-707. rm_genots_trm stops if the transition rate matrix has a non-zero diagonal. It checks: the zero-diagonal hand-made matrix is accepted; the same matrix with its full diagonal gives an error; a single non-zero entry in the diagonal gives an error; for a random 4-gene CBN model from evamtools, the stored transition rate matrix has a zero diagonal and is accepted, and the same matrix with its diagonal filled in gives an error. Without the check in rm_genots_trm, the 3 error checks fail (checked 2026-09-19).
+   #+begin_src R
+### rm_genots_trm will stop (refuse to work) if passed a transition rate matrix with a diagonal
+   #+end_src
+   The test_that starts at line 665:
+   #+begin_src R
+test_that("rm_genots_trm will stop (refuse to work) if passed a transition rate matrix with a diagonal", {
+   #+end_src
+
+
+* One-off checks, 2026-09-19 (not part of the test suite)
+
+These were run once, in a temporary directory; the scripts were not kept.
+
+1. Five random 7-gene models each of CBN, H-ESBCN and MHN, every gene killed (R 4.6.1 patched, evamtools 3.3.3):
+   - The diagonals of the stored transition rate matrices and of every Q_{-g} were exactly zero.
+   - Point 1 of "What this is" (diagonal recomputed) against the standard kill_gene: largest difference in genotype frequencies at most 1.1e-16.
+   - Point 2 of "What this is" (old diagonal kept) against the standard kill_gene: largest differences 0.075 to 0.56, and total probability as low as 0.04 to 0.45. The tests would catch this easily.
+   - A matrix with a diagonal passed to evamtools:::probs_from_trm and to genots_at_t_from_trm: both stop, with the errors described in section "3. The genotype frequencies".
+
+2. Test files run after the changes of 2026-09-19, one after the other: miscellanea-and-former-issues-TESTS.R, kill-MHN-TESTS.R, kill-gene-equivalences-TESTS.R, kill-CBN-TESTS.R, kill-HESBCN-TESTS.R. 0 failures, 0 errors, 0 skipped. The 26 warnings in miscellanea-and-former-issues-TESTS.R were already there before these changes (lines 267, 559, 561, 571; none from the new blocks).
