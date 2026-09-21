@@ -650,6 +650,29 @@ hitting_probs_from_WT_direct <- function(trans_mat, absorb_tol = 1e-12) {
 ##  messages of a large `divergence` from `hitting_probs_from_WT_both` that
 ##  have no practical relevance)
 
+##  An alternative (suggested by Iain Johnston), not implemented.
+
+##  The EM algorithm of HyperHMM does not perfectly converge. Setting these
+##  values to 0, as we do here, rules those transitions out, which the data
+##  cannot support either. His alternative: set every entry below the
+##  threshold to the threshold itself (e.g., 1e-12), and then renormalize
+##  each row. Then no tiny exit is favoured over another because of noise,
+##  and a genotype whose large exit is killed can still move on, with the
+##  same probability to each of the remaining exits. Neither rule is
+##  supported by the data: one says "never", the other says "all equally
+##  likely".
+##
+##  Both rules need a threshold. Iain sometimes uses 0.01/N (N, the
+##  number of samples), since a data set of that size cannot support
+##  smaller probabilities; this is much larger than our 1e-12.
+##
+##  In practice, the choice should only matter for hitting probabilities,
+##  and there only for genotypes that, after the kill, are left with
+##  nothing but tiny exits. The predicted genotype frequencies are not
+##  affected: in get_full_output (kill-gene-and-output-from-cpm.R) they
+##  are computed from the matrix before this thresholding is applied.
+##
+
 ## VERY IMPORTANT: this *ONLY THRESHOLDS* tiny transition probabilities to
 ## zero. It does *NOT* drop or otherwise remove genotypes (e.g. killed
 ## genotypes with all-zero rows are left in place, just as they are) ---
