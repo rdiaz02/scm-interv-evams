@@ -82,7 +82,7 @@
 ##   matrix, the rows and columns of all genotypes that contain gene
 ##   g. Function rm_genots_trm, called from
 ##   intervene_cpm_trm_rm_every_gene, both in this file. This one is
-##   only used in the tests. See file Q_g_paranoid_checks.org.
+##   only used in the tests. See file Q_g_manipulation_checks.org.
 
 
 #### HyperHMM, R_{-g}

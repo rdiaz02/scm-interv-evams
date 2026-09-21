@@ -40,12 +40,5 @@ allGenotypesLetter <- function(g) {
 }
 
 
-## Fitness-landscape statistics helpers (complete_fitness_landscape,
-## magellan_stats_masked, fitness_landscape_stats, one_fl_stats) were
-## moved to code_evam_simul_interv/utils-flandscape-stats.R during the
-## 2026-05 split between code_intervention (pure intervention machinery)
-## and code_evam_simul_interv (simulation, statistics, downstream analyses).
-
-
 library(codetools)
 checkUsageEnv(env = .GlobalEnv)
