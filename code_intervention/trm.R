@@ -28,7 +28,6 @@
 # we need to rename the genes to letters and then execute the code
 
 
-
 ### Loading/sourcing dependencies
 
 library(evamtools)
@@ -40,7 +39,6 @@ library(markovchain) ## hitting probabilities
 
 source("rfitness_to_trm.R")
 source("utils.R")
-
 
 
 ### Code
@@ -301,8 +299,6 @@ genots_from_trm <- function(trm, t = NA,
 }
 
 
-
-
 ## trans. rate matrix, number of genes in the trans. rate matrix,
 ## number of samples -> matrix of binary genotypes
 
@@ -372,9 +368,6 @@ fitness_landscape_2_scaled_trm <- function(x, c) {
 ##   return(list(p1 = p1, p2 = evamtools:::probs_from_trm(trm),
 ##               t1 = x[[1]]$trm, t2 = trm))
 ## }
-
-
-
 
 
 ## trm, vector of times, which are, now 100 points between 0 and 3 ->
@@ -456,9 +449,6 @@ probs_uniform_sampling_custom <- function(trm,
 ## probs_uniform_sampling_custom(trm1)
 
 
-
-
-
 ## When calling hittingProbabilities from markovchain
 ## all rows must sum to 1.
 ## So: anything without a 1 in the row is an absorbing state
@@ -491,7 +481,8 @@ hitting_probs_from_WT <- function(trans_mat) {
 ## Same output as hitting_probs_from_WT (named vector of hitting
 ## probabilities WT), but computed directly and just for WT as the origin.
 ## Used to check the output of markovchain:hittingProbabilities. Why? See
-## comments before function threshold_transition_matrix.
+## comments before function threshold_transition_matrix (file
+## HyperHMM-wrapper.R).
 
 hitting_probs_from_WT_direct <- function(trans_mat, absorb_tol = 1e-12) {
 
@@ -546,7 +537,8 @@ hitting_probs_from_WT_direct <- function(trans_mat, absorb_tol = 1e-12) {
   ## truth uses the same cutoff).
 
   ## Note: this absorb_tol is not the same as the thresholding in function
-  ## threshold_transition_matrix: in threshold_transition_matrix we set
+  ## threshold_transition_matrix (file HyperHMM-wrapper.R): in
+  ## threshold_transition_matrix we set
   ## each single entry below 1e-12 to 0; here, we treat a genotype as
   ## absorbing if its whole row adds up to ≤ 1e-12 (i.e., we consider can't
   ## move away from this genotype unless the total movement, over all
@@ -602,94 +594,6 @@ hitting_probs_from_WT_direct <- function(trans_mat, absorb_tol = 1e-12) {
 }
 
 
-## Set to zero the off-diagonal transition probabilities below `tol` and
-## renormalize each row to sum to 1.
-
-## Why? Fitted models --- HyperHMM especially --- can produce a large
-## fraction of transition probabilities that are just numerical noise (in
-## examples we checked, ~1/3 of a HyperHMM fit's entries are < 1e-12, and
-## can be as small as ~1e-320). The model cannot represent an exact zero,
-## so "never happens" can become ~1e-130. Those tiny entries can break
-## markovchain::hittingProbabilities; see
-## https://github.com/spedygiorgio/markovchain/issues/233.
-##
-##   - Before the fix of 2026-08-12, they made the per-target linear
-##     solves ill-conditioned. markovchain returned negative
-##     "probabilities", accompanied by a "system is singular" message
-##     from Armadillo for every target.
-##
-##   - After the fix of 2026-08-12, things can still be very wrong, and
-##     quietly (reported 2026-09-17)
-
-##    - A further fix (branch fix/hittingprobs, commit db73e68, not on CRAN
-##     as of 2026-09-18) gives, on our 9-gene example, the exact answer to
-##     ~1e-14 with and without thresholding.
-
-##  For now, we keep thresholding. Suppose a genotype (X) that could
-##  transition with prob. = 1 - (1e-13) to a genotype with the killed gene,
-##  and with prob. 1e-13 to another genotype (Y). If we do not threshold,
-##  after killing, the hitting probability of X is affected by what other
-##  tiny entries might have been left (e.g., genotypes that transition to
-##  via tiny probs. to something else, instead of to X). Moreover, suppose
-##  the only way to get to Y were via X; if we threshold, Y's hitting
-##  probability will be 0, but if we don't, it won't (and it might actually
-##  be relatively large if X's own hitting prob. is large); this behavior,
-##  where X and Y can end up with the same hitting prob. is not sensible
-##  when the transition prob. from X to Y is 1e-12 or less, given our
-##  sample sizes.
-
-##  And thresholding has another virtue: all three versions of markovchain
-##  since we reported the bug (right before the report, the 2026-08-12 fix,
-##  and the current branch fix/hittingprobs as of 2026-09-18) behave the
-##  same and also the same as our own code for hitting probs and with
-##  Monte-Carlo results. Given the state of flux of markovchain, and given
-##  that the fix as of 2026-09-18 is not yet in CRAN, this seems the
-##  sensible choice. (Other options, such as thresholding for our code but
-##  not for markovchain, and using the latest markovchain version, put too
-##  large a burden on users and developers, and might give alarming
-##  messages of a large `divergence` from `hitting_probs_from_WT_both` that
-##  have no practical relevance)
-
-##  An alternative (suggested by Iain Johnston), not implemented.
-
-##  The EM algorithm of HyperHMM does not perfectly converge. Setting these
-##  values to 0, as we do here, rules those transitions out, which the data
-##  cannot support either. His alternative: set every entry below the
-##  threshold to the threshold itself (e.g., 1e-12), and then renormalize
-##  each row. Then no tiny exit is favoured over another because of noise,
-##  and a genotype whose large exit is killed can still move on, with the
-##  same probability to each of the remaining exits. Neither rule is
-##  supported by the data: one says "never", the other says "all equally
-##  likely".
-##
-##  Both rules need a threshold. Iain sometimes uses 0.01/N (N, the
-##  number of samples), since a data set of that size cannot support
-##  smaller probabilities; this is much larger than our 1e-12.
-##
-##  In practice, the choice should only matter for hitting probabilities,
-##  and there only for genotypes that, after the kill, are left with
-##  nothing but tiny exits. The predicted genotype frequencies are not
-##  affected: in get_full_output (kill-gene-and-output-from-cpm.R) they
-##  are computed from the matrix before this thresholding is applied.
-##
-
-## VERY IMPORTANT: this *ONLY THRESHOLDS* tiny transition probabilities to
-## zero. It does *NOT* drop or otherwise remove genotypes (e.g. killed
-## genotypes with all-zero rows are left in place, just as they are) ---
-## dropping is a separate issue (see function
-## kill_gene_HyperHMM_drop_unreachable).
-
-threshold_transition_matrix <- function(m, tol = 1e-12) {
-  tm <- as.matrix(m)
-  offdiag <- row(tm) != col(tm)
-  tm[offdiag & (tm < tol)] <- 0
-  rs <- rowSums(tm)
-  pos <- rs > 0
-  tm[pos, ] <- tm[pos, ] / rs[pos]
-  return(tm)
-}
-
-
 ## Compute the WT hitting probabilities both ways: with markovchain package
 ## (hitting_probs_from_WT) and our code above for the direct method
 ## (hitting_probs_from_WT_direct). Return both, with markovchain's result
@@ -700,7 +604,8 @@ threshold_transition_matrix <- function(m, tol = 1e-12) {
 ## in the warning to help locate the computation with the problem.
 ##
 ## However, after using the thresholding on HyperHMM results (see function
-## threshold_transition_matrix) we should not see any serious diveregences.
+## threshold_transition_matrix, file HyperHMM-wrapper.R) we should not see
+## any serious diveregences.
 
 hitting_probs_from_WT_both <- function(trans_mat,
                                        context = "", tol = 1e-6) {

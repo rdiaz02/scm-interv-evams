@@ -224,16 +224,11 @@ test_that("HyperHMM interventions and predicted genot calculations", {
     ## retained in the HP vector by filter_hp_keep_wt (its first-passage
     ## hitting prob is 0 by convention).
 
-    ## In tiny ones this does not seem to happen, but just in case
-    o1_AT <- threshold_transition_matrix(o1_A)
-    o1_BT <- threshold_transition_matrix(o1_B)
-    o1_CT <- threshold_transition_matrix(o1_C)
-
-    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_AT)),
+    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_A)),
                  o1[["I:A"]]$hitting_probs_from_WT)
-    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_BT)),
+    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_B)),
                  o1[["I:B"]]$hitting_probs_from_WT)
-    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_CT)),
+    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_C)),
                  o1[["I:C"]]$hitting_probs_from_WT)
     ## WT must be present (kept by filter_hp_keep_wt) after intervention
     expect_true("WT" %in% names(o1[["I:A"]]$hitting_probs_from_WT))
@@ -382,7 +377,7 @@ test_that("HyperHMM interventions and predicted genot calculations", {
 
     ## Explicit hitting-prob check for I:C (5-gene), as above
     ## Threshold the matrix before hitting probs.
-    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(threshold_transition_matrix(o1_C))),
+    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_C)),
                  o1[["I:C"]]$hitting_probs_from_WT)
     expect_true("WT" %in% names(o1[["I:C"]]$hitting_probs_from_WT))
 
@@ -466,7 +461,7 @@ test_that("HyperHMM interventions and predicted genot calculations", {
     expect_equal(pp_E, o1[["I:E"]]$genot_freqs)
 
     ## Explicit hitting-prob check for I:E (5-gene), as above
-    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(threshold_transition_matrix(o1_E))),
+    expect_equal(filter_hp_keep_wt(hitting_probs_from_WT(o1_E)),
                  o1[["I:E"]]$hitting_probs_from_WT)
     expect_true("WT" %in% names(o1[["I:E"]]$hitting_probs_from_WT))
   }
@@ -556,6 +551,90 @@ test_that("HyperHMM", {
 
   expect_warning(get_genotype_freqs_cpm(hm1_B, t = 2),
                  "With methods")
+})
+
+
+## The transition matrix is denoised once, in run_HyperHMM, right after
+## fitting. The raw matrix is kept, and the threshold and rule are
+## recorded.
+test_that("HyperHMM: denoising right after fitting, raw kept, threshold and rule recorded", {
+  rmhn <- random_evam(model = "MHN", ngenes = 5)
+  sample_mhn <- sample_evam(rmhn, N = 2000, obs_noise = 0.02)
+  dd <- sample_mhn$MHN_sampled_genotype_counts_as_data
+  h1 <- evam_like_HyperHMM(dd)
+
+  ## The defaults are recorded
+  expect_true(h1$HyperHMM_threshold == 1e-12)
+  expect_true(h1$HyperHMM_threshold_rule == "set_to_zero")
+
+  raw <- as.matrix(h1$HyperHMM_trans_mat_raw)
+  den <- as.matrix(h1$HyperHMM_trans_mat)
+  cat("\n Number of entries in (0, 1e-12) in the raw matrix: ",
+      sum(raw > 0 & raw < 1e-12), "\n")
+
+  ## The denoised matrix is the thresholded raw one
+  expect_true(isTRUE(all.equal(den, threshold_transition_matrix(raw),
+                               check.attributes = FALSE)))
+  ## Nothing in (0, 1e-12) is left, and exactly the entries at or above
+  ## the threshold in the raw matrix are non-zero in the denoised one
+  expect_true(!any(den > 0 & den < 1e-12))
+  expect_true(all((raw >= 1e-12) == (den > 0)))
+  ## Rows of the denoised matrix sum to 1 (except the full genotype,
+  ## which has no transitions)
+  rs <- rowSums(den)
+  expect_true(isTRUE(all.equal(rs[rs > 0], rep(1, sum(rs > 0)),
+                               check.attributes = FALSE)))
+
+  ## Both matrices have the attributes used for interventions
+  expect_true(attributes(h1$HyperHMM_trans_mat)$method_output ==
+              "HyperHMM_trans_mat")
+  expect_true(attributes(h1$HyperHMM_trans_mat_raw)$method_output ==
+              "HyperHMM_trans_mat")
+  expect_true(attributes(h1$HyperHMM_trans_mat)$num_features == 5)
+
+  ## The predicted genotype frequencies come from the denoised matrix
+  pp <- probs_from_HyperHMM(h1$HyperHMM_trans_mat,
+                            h1$HyperHMM_used_prob.set,
+                            5)$predicted_genotype_freqs
+  expect_true(isTRUE(all.equal(pp, h1$HyperHMM_predicted_genotype_freqs)))
+
+  ## With few genes, the raw matrix often has no entries below 1e-12, so
+  ## the checks above may not exercise any removal. With a large
+  ## threshold (1e-3) there are always entries to remove.
+  h3 <- evam_like_HyperHMM(dd, opts = list(threshold = 1e-3))
+  expect_true(h3$HyperHMM_threshold == 1e-3)
+  raw3 <- as.matrix(h3$HyperHMM_trans_mat_raw)
+  den3 <- as.matrix(h3$HyperHMM_trans_mat)
+  expect_true(sum(raw3 > 0 & raw3 < 1e-3) > 0)
+  expect_true(isTRUE(all.equal(den3,
+                               threshold_transition_matrix(raw3, tol = 1e-3),
+                               check.attributes = FALSE)))
+  expect_true(!any(den3 > 0 & den3 < 1e-3))
+  expect_true(all((raw3 >= 1e-3) == (den3 > 0)))
+  pp3 <- probs_from_HyperHMM(h3$HyperHMM_trans_mat,
+                             h3$HyperHMM_used_prob.set,
+                             5)$predicted_genotype_freqs
+  expect_true(isTRUE(all.equal(pp3, h3$HyperHMM_predicted_genotype_freqs)))
+  ## And the predictions differ from those of the raw matrix
+  pp3_raw <- probs_from_HyperHMM(h3$HyperHMM_trans_mat_raw,
+                                 h3$HyperHMM_used_prob.set,
+                                 5)$predicted_genotype_freqs
+  expect_true(!isTRUE(all.equal(pp3, pp3_raw)))
+
+  ## Threshold 0: nothing is removed
+  h0 <- evam_like_HyperHMM(dd, opts = list(threshold = 0))
+  expect_true(h0$HyperHMM_threshold == 0)
+  expect_true(isTRUE(all.equal(as.matrix(h0$HyperHMM_trans_mat),
+                               as.matrix(h0$HyperHMM_trans_mat_raw),
+                               check.attributes = FALSE)))
+
+  ## The alternative rule is not implemented yet, and unknown rules stop
+  expect_error(evam_like_HyperHMM(dd, opts = list(
+    threshold_rule = "make_all_tiny_equally_tiny")),
+    "not implemented yet")
+  expect_error(evam_like_HyperHMM(dd, opts = list(
+    threshold_rule = "no_such_rule")),
+    "Unrecognized threshold_rule")
 })
 
 

@@ -355,6 +355,8 @@ get_full_output <- function(x, epos = 0) {
   if (isTRUE(attributes(x)$method_output == "HyperHMM_trans_mat")) {
     method <- "HyperHMM"
     out <- list()
+    ## The HyperHMM transition matrix was already denoised, right after
+    ## fitting, in run_HyperHMM (file HyperHMM-wrapper.R).
     tmph <- probs_from_HyperHMM(x,
                                 attributes(x)$num_prob.set,
                                 attributes(x)$num_features)
@@ -403,16 +405,11 @@ get_full_output <- function(x, epos = 0) {
 
   ## Compute the WT hitting probabilities both ways
   ## (markovchain::hittingProbabilities and our direct kept as the
-  ## comparison) and record their divergence. Only HyperHMM needs the
-  ## transition matrix thresholded first. See rationale and details in
-  ## comments before function threshold_transition_matrix (file trm.R).
+  ## comparison) and record their divergence.
 
   hp_key   <- paste0(method, "_hitting_probs_from_WT")
   hpd_key  <- paste0(method, "_hitting_probs_from_WT_direct")
   div_key  <- paste0(method, "_divergence_hitting_prob_calculation")
-  if (method == "HyperHMM") {
-    out[[trans_mat_key]] <- threshold_transition_matrix(out[[trans_mat_key]])
-  }
   both <- hitting_probs_from_WT_both(out[[trans_mat_key]], context = method)
   out[[hp_key]]  <- both$hp          ## canonical: markovchain
   out[[hpd_key]] <- both$hp_direct   ## comparison: direct
@@ -535,9 +532,23 @@ get_genotype_freqs_cpm <- function(model, t = NA) {
 ## use kill_gene_HyperHMM_drop_unreachable, below.
 kill_gene_HyperHMM <- function(x, gene) {
   if (length(gene) != 1) stop("length(gene) != 1")
+  ## The HyperHMM transition matrix has a zero diagonal. Below, in step
+  ## 2, we overwrite the diagonal (we do not add to it), so a non-zero
+  ## diagonal would be silently lost. And the paranoid check below
+  ## would not catch it: procedure B gives the same wrong result. So we
+  ## stop here if the diagonal is not zero. (This also means a matrix
+  ## that has already been killed cannot be killed again.)
+  stopifnot(isTRUE(all(diag(x) == 0)))
   ## 1. Find genotypes that are killed
   ## 2. Assign that probability to the diagonal
   ## 3. Zero the entries killed
+  ##    The zeroing is done in this order:
+  ##    - zero the killed row (which also means the killed get 0 in
+  ##      their diagonal)
+  ##    - store the destination prob. of the killed, and
+  ##      assign to the diagonal of the origin
+  ##    - zero the column of the killed
+
 
   ## 1. Find genotypes
   genots_before <- colnames(x)

@@ -37,7 +37,8 @@
 
 ## Why thresholding, and why it is kept as the default, is explained in
 ## detail in the (long) comments before function
-## threshold_transition_matrix, in file trm.R. Please refer to those.
+## threshold_transition_matrix, in file HyperHMM-wrapper.R. Please refer
+## to those.
 
 
 ## Just in case, we compute now hitting probs from WT using markovchain::
