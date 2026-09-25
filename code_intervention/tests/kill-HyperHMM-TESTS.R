@@ -599,23 +599,46 @@ test_that("HyperHMM: denoising right after fitting, raw kept, threshold and rule
   expect_true(isTRUE(all.equal(pp, h1$HyperHMM_predicted_genotype_freqs)))
 
   ## With few genes, the raw matrix often has no entries below 1e-12, so
-  ## the checks above may not exercise any removal. With a large
-  ## threshold (1e-3) there are always entries to remove.
-  h3 <- evam_like_HyperHMM(dd, opts = list(threshold = 1e-3))
-  expect_true(h3$HyperHMM_threshold == 1e-3)
+  ## the checks above may not exercise any removal. A fixed larger
+  ## threshold (e.g., 1e-3) does not guarantee it either: some random
+  ## data sets have no entries below 1e-3, or only entries so small
+  ## (~1e-8) that removing them changes the predictions by less than
+  ## all.equal's tolerance. So we derive the threshold from the data:
+  ## just above the smallest transition out of WT that is >= 1e-4. That
+  ## removes at least that transition, and, since WT is where every
+  ## path starts, it changes the predicted genotype frequencies by at
+  ## least ~1e-4 times the weight of time 1 in prob.set. It can not
+  ## empty any row: each row's largest entry is >= 1/5 (at most 5
+  ## transitions out of a genotype, summing to 1), and the threshold
+  ## is below the largest transition out of WT.
+  wt_out <- raw["WT", colnames(raw) != "WT"]
+  wt_out <- sort(wt_out[wt_out >= 1e-4])
+  expect_true(length(wt_out) >= 2)
+  tol3 <- wt_out[[1]] * (1 + 1e-6)
+  expect_true(tol3 < max(wt_out))
+  cat("\n Data-derived threshold: ", tol3, "\n")
+
+  h3 <- evam_like_HyperHMM(dd, opts = list(threshold = tol3))
+  expect_true(h3$HyperHMM_threshold == tol3)
   raw3 <- as.matrix(h3$HyperHMM_trans_mat_raw)
   den3 <- as.matrix(h3$HyperHMM_trans_mat)
-  expect_true(sum(raw3 > 0 & raw3 < 1e-3) > 0)
+  ## The threshold was derived from h1's fit, so check that h3's raw fit
+  ## is the same
+  expect_true(isTRUE(all.equal(raw3, raw, check.attributes = FALSE)))
+  expect_true(sum(raw3 > 0 & raw3 < tol3) > 0)
   expect_true(isTRUE(all.equal(den3,
-                               threshold_transition_matrix(raw3, tol = 1e-3),
+                               threshold_transition_matrix(raw3, tol = tol3),
                                check.attributes = FALSE)))
-  expect_true(!any(den3 > 0 & den3 < 1e-3))
-  expect_true(all((raw3 >= 1e-3) == (den3 > 0)))
+  expect_true(!any(den3 > 0 & den3 < tol3))
+  expect_true(all((raw3 >= tol3) == (den3 > 0)))
+  ## No row that had transitions was emptied
+  expect_true(all((rowSums(raw3) > 0) == (rowSums(den3) > 0)))
   pp3 <- probs_from_HyperHMM(h3$HyperHMM_trans_mat,
                              h3$HyperHMM_used_prob.set,
                              5)$predicted_genotype_freqs
   expect_true(isTRUE(all.equal(pp3, h3$HyperHMM_predicted_genotype_freqs)))
-  ## And the predictions differ from those of the raw matrix
+  ## And the predictions differ from those of the raw matrix, by more
+  ## than all.equal's default tolerance
   pp3_raw <- probs_from_HyperHMM(h3$HyperHMM_trans_mat_raw,
                                  h3$HyperHMM_used_prob.set,
                                  5)$predicted_genotype_freqs
