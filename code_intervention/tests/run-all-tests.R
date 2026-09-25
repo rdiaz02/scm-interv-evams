@@ -33,6 +33,7 @@ date()
 
 source("../dependencies.R", echo = TRUE)
 
+sessionInfo()
 
 options(intervention_every_gene_cores = parallel::detectCores())
 ## For my laptop (Triturus), use only 4 cores. This must set the option
