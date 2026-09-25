@@ -15,4 +15,4 @@ To run the code and all tests you'll need to install:
 
 The recommended way is to change to the test directory (`code_intervention/tests`) and do, from a terminal, `R --vanilla -f run-all-tests.R &> run-all-tests.Rout`. The tests take between 35 and 45 minutes, depending on hardware and parallelization.
 
-A reference output from a full run (R 4.5.3) is in `code_intervention/tests/run-all-tests.Rout`. The number of checks varies slightly between runs because some tests use random models.
+Reference outputs from a full run are in `code_intervention/tests/run-all-tests-R-4.5.3.Rout` and `code_intervention/tests/run-all-tests-R-4.6.1.Rout` (using R versions R-4.5.3 and R-4.6.1, respectively). The number of checks varies slightly between runs because some tests use random models.
