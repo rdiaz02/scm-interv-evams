@@ -1,0 +1,21 @@
+{
+    "title": "scm-interv-evams: code for 'A structural causal framework for interventions on evolutionary accumulation models'",
+    "description": "Code for \"A structural causal framework for interventions on evolutionary accumulation models\" (Diaz-Uriarte, Ríos-Arroyo, and Johnston; Royal Society Open Science, DOI 10.1098/rsos.261332; arXiv:2606.12597).",
+    "upload_type": "software",
+    "license": "agpl-3.0-or-later",
+    "creators": [
+	{"name": "Diaz-Uriarte, Ramon",
+	 "affiliation": "Instituto de Investigaciones Biomédicas Sols-Morreale (IIBM), UAM-CSIC; Universidad Autónoma de Madrid",
+	 "orcid": "0000-0002-6637-9039"},
+	{"name": "Ríos-Arroyo, Íñigo",
+	 "affiliation": "Instituto de Investigaciones Biomédicas Sols-Morreale (IIBM), UAM-CSIC; Universidad Autónoma de Madrid"},
+	{"name": "Johnston, Iain G.",
+	 "affiliation": "Department of Mathematics, University of Bergen; Computational Biology Unit, University of Bergen",
+	 "orcid": "0000-0001-8559-3519"}
+    ],
+    "related_identifiers": [
+	{"identifier": "10.1098/rsos.261332", "relation": "isSupplementTo", "resource_type": "publication-article"},
+	{"identifier": "arXiv:2606.12597", "relation": "isSupplementTo", "resource_type": "publication-preprint"}
+    ],
+    "keywords": ["cancer progression models", "evolutionary accumulation models", "causal inference", "interventions", "R"]
+}
