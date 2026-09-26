@@ -4,7 +4,7 @@ R code for [A structural causal framework for interventions on evolutionary accu
 
 ## Dependencies
 To run the code and all tests you'll need to install:
-- [evamtools](https://github.com/rdiaz02/EvAM-Tools). Because of its dependencies, that package is not available from CRAN or BioConductor. Installation is detailed in  [Installing and running EvAM Tools](https://github.com/rdiaz02/EvAM-Tools#installing-and-running). If you are on Windows, the fastest route might be to use a Docker image (explained also in that link). If you are on macOS (at least macOS on Apple silicon), from what we have been told, the only system dependency is graphviz from Homebrew, which Rgraphviz and then OncoSimulR need.
+- [evamtools](https://github.com/rdiaz02/EvAM-Tools). Because of its dependencies, that package is not available from CRAN or BioConductor. Installation is detailed in  [Installing and running EvAM Tools](https://github.com/rdiaz02/EvAM-Tools#installing-and-running). If you are on Windows, the fastest route might be to use a Docker image (explained also in that link). If you are on macOS (at least macOS on Apple silicon), from what we have been told, Docker is not needed, and the only system dependency is graphviz from Homebrew, which Rgraphviz and then OncoSimulR need.
 - [hyperhmm](https://github.com/StochasticBiology/hyperhmm) package. From R, you can do `remotes::install_github("StochasticBiology/hyperhmm")` (if you do not have the `remotes` package installed, install it first by doing `install.packages("remotes")`).
 - You will also need to install the following packages, available from CRAN: `uuid`, `expm`, `markovchain` and `testthat`. From R you can type `install.packages(c("uuid", "expm", "markovchain", "testthat"))`.
 
