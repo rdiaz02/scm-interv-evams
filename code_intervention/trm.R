@@ -554,8 +554,22 @@ hitting_probs_from_WT_direct <- function(trans_mat, absorb_tol = 1e-12) {
   result <- setNames(rep(0.0, n), states)
 
   ## Absorbing = no (non-negligible) probability of moving to a different
-  ## state.
-  off_diag_out <- rowSums(m) - diag(m)
+  ## state. The escape probability of each state (off_diag_out) is
+  ## computed as the sum of its off-diagonal entries, NOT as rowSums(m) -
+  ## diag(m), nor, below, as 1 - Q[j, j]. Why: after killing a gene, a
+  ## genotype whose main exit went to a killed genotype has a diagonal
+  ## very close to 1 (e.g., 1 - 3.7e-8) and a tiny remaining exit. Both
+  ## 1 - diag and rowSums - diag then suffer catastrophic cancellation:
+  ## an absolute error of ~1e-16 that, relative to an escape of 3.7e-8,
+  ## is ~1e-9, and that relative error propagates unchanged to the
+  ## hitting probabilities (e.g., 1 + 1e-9 for a state hit with
+  ## probability 1). In general the error was ~2e-16 / escape, so up to
+  ## 2e-4 for an escape of 1e-12 (absorb_tol). The off-diagonal sum has
+  ## no cancellation: it is exact to machine precision. (Found on
+  ## 2026-09-28 by the non-stop test loop: 1 failure in ~565 loops.)
+  off <- m
+  diag(off) <- 0
+  off_diag_out <- rowSums(off)
   absorbing <- which(off_diag_out <= absorb_tol)
   transient <- setdiff(seq_len(n), absorbing)
 
@@ -571,8 +585,14 @@ hitting_probs_from_WT_direct <- function(trans_mat, absorb_tol = 1e-12) {
     return(result)
   }
 
-  Q <- m[transient, transient, drop = FALSE]
-  N <- solve(diag(nrow(Q)) - Q)
+  ## I - Q, with Q = m[transient, transient]. The diagonal of I - Q is
+  ## 1 - Q[j, j] which, as rows sum to 1, equals the escape probability of
+  ## j (the sum of ALL its off-diagonal entries, to transient and to
+  ## absorbing states). We use that sum, already computed above, to avoid
+  ## the cancellation in 1 - Q[j, j]. See the comment above off_diag_out.
+  IQ <- -off[transient, transient, drop = FALSE]
+  diag(IQ) <- off_diag_out[transient]
+  N <- solve(IQ)
   wt_t <- match(wt, transient) ## index of WT within the transient block
 
   ## Transient targets (j != WT): N[WT, j] / N[j, j].

@@ -14,6 +14,14 @@
 ## so that no state (seeds, sourced code, options) carries over from one
 ## loop to the next.
 ##
+## To loop over only some test files, give their names on the command
+## line, after --args; they are passed on to run-all-tests.R:
+##
+##   R --vanilla -f run-tests-non-stop.R --args trm-TESTS.R kill-HyperHMM-TESTS.R
+##
+## (run-hitting-probs-non-stop.R does this for the hitting probabilities
+## and HyperHMM tests.)
+##
 ## Output, in directory non-stop-logs/:
 ##
 ##   - current.Rout: output of the loop now running (overwritten at the
@@ -43,6 +51,10 @@ summary_log <- file.path(log_dir, "summary.log")
 
 R_bin <- file.path(R.home("bin"), "R")
 
+## Test files given on the command line, if any, to pass on to
+## run-all-tests.R. Empty means all of them.
+tests_to_run <- commandArgs(trailingOnly = TRUE)
+
 log_line <- function(...) {
     line <- paste0(...)
     cat(line, "\n")
@@ -50,7 +62,9 @@ log_line <- function(...) {
 }
 
 log_line("#### Started ", format(Sys.time()), " with ", R.version.string,
-         " on ", Sys.info()[["nodename"]])
+         " on ", Sys.info()[["nodename"]], ". Test files: ",
+         if (length(tests_to_run)) paste(tests_to_run, collapse = ", ")
+         else "all")
 
 n_loops <- 0
 n_failed <- 0
@@ -58,7 +72,9 @@ n_failed <- 0
 repeat {
     n_loops <- n_loops + 1
     start <- Sys.time()
-    status <- system2(R_bin, c("--vanilla", "-f", "run-all-tests.R"),
+    status <- system2(R_bin, c("--vanilla", "-f", "run-all-tests.R",
+                               if (length(tests_to_run))
+                                   c("--args", tests_to_run)),
                       stdout = current_out, stderr = current_out)
     minutes <- round(as.numeric(difftime(Sys.time(), start,
                                          units = "mins")), 1)

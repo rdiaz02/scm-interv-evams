@@ -45,10 +45,20 @@ options(intervention_every_gene_cores = parallel::detectCores())
 if (Sys.info()[["nodename"]] == "Triturus")
   options(intervention_every_gene_cores = 4)
 
-tests_files <- sort(dir(pattern = glob2rx("*-TESTS.R")))
+## Which test files to run: all the *-TESTS.R files here, unless some
+## file names are given on the command line, after --args, e.g.
+##   R --vanilla -f run-all-tests.R --args trm-TESTS.R kill-HyperHMM-TESTS.R
+## (that is what run-hitting-probs-non-stop.R does, via
+## run-tests-non-stop.R).
+tests_files <- commandArgs(trailingOnly = TRUE)
+if (length(tests_files) == 0)
+    tests_files <- sort(dir(pattern = glob2rx("*-TESTS.R")))
 
 if (length(tests_files) == 0)
     stop("No *-TESTS.R files found. Is the working directory tests/?")
+if (!all(file.exists(tests_files)))
+    stop("Test file(s) not found: ",
+         paste(tests_files[!file.exists(tests_files)], collapse = ", "))
 
 for (f in tests_files) {
     cat("\n#######################################\n")
