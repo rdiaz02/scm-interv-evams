@@ -61,7 +61,7 @@ language       R
 version.string R version 4.5.3 Patched (2026-03-11 r89773)
 nickname       Reassured Reassurer                        
 > date()
-[1] "Fri Sep 25 19:19:00 2026"
+[1] "Fri Oct  2 12:57:35 2026"
 > 
 > ## Make sure all packages we need exist. Otherwise, we will abort
 > ## immediately
@@ -203,10 +203,20 @@ loaded via a namespace (and not attached):
 > if (Sys.info()[["nodename"]] == "Triturus")
 +   options(intervention_every_gene_cores = 4)
 > 
-> tests_files <- sort(dir(pattern = glob2rx("*-TESTS.R")))
+> ## Which test files to run: all the *-TESTS.R files here, unless some
+> ## file names are given on the command line, after --args, e.g.
+> ##   R --vanilla -f run-all-tests.R --args trm-TESTS.R kill-HyperHMM-TESTS.R
+> ## (that is what run-hitting-probs-non-stop.R does, via
+> ## run-tests-non-stop.R).
+> tests_files <- commandArgs(trailingOnly = TRUE)
+> if (length(tests_files) == 0)
++     tests_files <- sort(dir(pattern = glob2rx("*-TESTS.R")))
 > 
 > if (length(tests_files) == 0)
 +     stop("No *-TESTS.R files found. Is the working directory tests/?")
+> if (!all(file.exists(tests_files)))
++     stop("Test file(s) not found: ",
++          paste(tests_files[!file.exists(tests_files)], collapse = ", "))
 > 
 > for (f in tests_files) {
 +     cat("\n#######################################\n")
@@ -272,7 +282,7 @@ loaded via a namespace (and not attached):
 ══ Testing generate_fitness_landscape_demonstrations-TESTS.R ═══════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  622411668 
+ Seed used was  117036648 
 ############### Doing i =  1 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
@@ -413,7 +423,7 @@ loaded via a namespace (and not attached):
 ══ Testing hitting-probs-direct-and-drop-unreachable-TESTS.R ═══════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  931997807 
+ Seed used was  408568940 
 
  Starting a HyperHMM run
 == HyperHMM ==
@@ -422,15 +432,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 772630292
+  seed: 524009885
   nboot: 0
   fullsample: 1
 
-Found 2859 entries with 3 features.
+Found 1158 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.4376   0.4999   0.0625
-   0.0286   0.0892   0.8822
-   0.5338   0.4109   0.0553
+   0.8552   0.1104   0.0344
+   0.0147   0.2183   0.7670
+   0.1301   0.6713   0.1986
 
 Running bootstrap resamples
 storing means
@@ -438,7 +448,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.034 
+      Finished a HyperHMM run. Elapsed =  0.033 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
@@ -468,15 +478,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 830581328
+  seed: 777065975
   nboot: 0
   fullsample: 1
 
-Found 2956 entries with 3 features.
+Found 971 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.8699   0.1062   0.0239
-   0.0599   0.1526   0.7875
-   0.0702   0.7412   0.1886
+   0.1256   0.6213   0.2531
+   0.1565   0.1922   0.6513
+   0.7179   0.1865   0.0956
 
 Running bootstrap resamples
 storing means
@@ -484,7 +494,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.012 
+      Finished a HyperHMM run. Elapsed =  0.011 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 23 ]
@@ -514,15 +524,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 950104100
+  seed: 909074111
   nboot: 0
   fullsample: 1
 
-Found 2251 entries with 3 features.
+Found 2243 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.6960   0.2362   0.0678
-   0.1690   0.3739   0.4571
-   0.1350   0.3899   0.4751
+   0.8247   0.1383   0.0370
+   0.1360   0.7350   0.1290
+   0.0393   0.1267   0.8340
 
 Running bootstrap resamples
 storing means
@@ -530,7 +540,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.012 
+      Finished a HyperHMM run. Elapsed =  0.011 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 43 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 44 ]
@@ -560,15 +570,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 915263709
+  seed: 476042829
   nboot: 0
   fullsample: 1
 
-Found 1456 entries with 3 features.
+Found 664 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.4744   0.4484   0.0772
-   0.1628   0.0133   0.8239
-   0.3628   0.5383   0.0989
+   0.8857   0.0926   0.0217
+   0.0472   0.3082   0.6446
+   0.0671   0.5992   0.3337
 
 Running bootstrap resamples
 storing means
@@ -576,7 +586,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.012 
+      Finished a HyperHMM run. Elapsed =  0.011 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 64 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 65 ]
@@ -606,16 +616,16 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 961776828
+  seed: 535249913
   nboot: 0
   fullsample: 1
 
-Found 2537 entries with 4 features.
+Found 2249 entries with 4 features.
 Mean ordering matrix from sampling:
-   0.3346   0.3517   0.2381   0.0756
-   0.1441   0.2511   0.4158   0.1890
-   0.4786   0.3309   0.1443   0.0462
-   0.0427   0.0663   0.2018   0.6892
+   0.1714   0.4139   0.2958   0.1189
+   0.4186   0.4464   0.1125   0.0225
+   0.1673   0.0778   0.2146   0.5403
+   0.2427   0.0619   0.3771   0.3183
 
 Running bootstrap resamples
 storing means
@@ -660,16 +670,16 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 314533077
+  seed: 705182604
   nboot: 0
   fullsample: 1
 
-Found 2689 entries with 4 features.
+Found 1245 entries with 4 features.
 Mean ordering matrix from sampling:
-   0.0552   0.0930   0.4662   0.3856
-   0.4257   0.4285   0.0938   0.0520
-   0.0470   0.0684   0.3612   0.5234
-   0.4721   0.4101   0.0788   0.0390
+   0.0274   0.0215   0.1403   0.8108
+   0.5209   0.4113   0.0534   0.0144
+   0.0377   0.0727   0.7409   0.1487
+   0.4140   0.4945   0.0654   0.0261
 
 Running bootstrap resamples
 storing means
@@ -677,7 +687,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.019 
+      Finished a HyperHMM run. Elapsed =  0.017 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 113 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 114 ]
@@ -714,16 +724,16 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 626090838
+  seed: 315739702
   nboot: 0
   fullsample: 1
 
-Found 2763 entries with 4 features.
+Found 1906 entries with 4 features.
 Mean ordering matrix from sampling:
-   0.1400   0.2513   0.3273   0.2814
-   0.3252   0.2562   0.3318   0.0868
-   0.4490   0.3057   0.1972   0.0481
-   0.0858   0.1868   0.1437   0.5837
+   0.1277   0.1567   0.2103   0.5053
+   0.3701   0.3350   0.1961   0.0988
+   0.4365   0.2693   0.1611   0.1331
+   0.0657   0.2390   0.4325   0.2628
 
 Running bootstrap resamples
 storing means
@@ -768,16 +778,16 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 160901932
+  seed: 607067239
   nboot: 0
   fullsample: 1
 
-Found 2333 entries with 4 features.
+Found 643 entries with 4 features.
 Mean ordering matrix from sampling:
-   0.4156   0.3076   0.2196   0.0572
-   0.0519   0.3495   0.3520   0.2466
-   0.4135   0.1010   0.1705   0.3150
-   0.1190   0.2419   0.2579   0.3812
+   0.1007   0.2141   0.3835   0.3017
+   0.1367   0.3393   0.2102   0.3138
+   0.1495   0.1341   0.3544   0.3620
+   0.6131   0.3125   0.0519   0.0225
 
 Running bootstrap resamples
 storing means
@@ -785,7 +795,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.02 
+      Finished a HyperHMM run. Elapsed =  0.019 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 169 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 170 ]
@@ -822,17 +832,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 62137539
+  seed: 917640898
   nboot: 0
   fullsample: 1
 
-Found 897 entries with 5 features.
+Found 2252 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.1889   0.1522   0.1101   0.0911   0.4577
-   0.1132   0.3084   0.3264   0.1776   0.0744
-   0.3607   0.1635   0.1111   0.2577   0.1070
-   0.2483   0.2966   0.1735   0.2163   0.0653
-   0.0889   0.0793   0.2789   0.2573   0.2956
+   0.0293   0.0682   0.0578   0.1032   0.7415
+   0.0989   0.2904   0.3780   0.1782   0.0545
+   0.2185   0.1301   0.1658   0.3915   0.0941
+   0.1448   0.3409   0.3289   0.1584   0.0270
+   0.5085   0.1704   0.0695   0.1687   0.0829
 
 Running bootstrap resamples
 storing means
@@ -840,7 +850,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.031 
+      Finished a HyperHMM run. Elapsed =  0.028 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 197 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 198 ]
@@ -884,17 +894,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 15443391
+  seed: 339927500
   nboot: 0
   fullsample: 1
 
-Found 2303 entries with 5 features.
+Found 808 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.2338   0.4659   0.2349   0.0437   0.0217
-   0.5184   0.2424   0.1234   0.0707   0.0451
-   0.0557   0.0674   0.2501   0.2657   0.3611
-   0.1014   0.1535   0.2510   0.3298   0.1643
-   0.0907   0.0708   0.1406   0.2901   0.4078
+   0.1733   0.4668   0.2744   0.0641   0.0214
+   0.0530   0.0194   0.0987   0.4114   0.4175
+   0.0095   0.2896   0.4523   0.1867   0.0619
+   0.6727   0.1957   0.0898   0.0119   0.0299
+   0.0915   0.0285   0.0848   0.3259   0.4693
 
 Running bootstrap resamples
 storing means
@@ -946,17 +956,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 897667621
+  seed: 845854982
   nboot: 0
   fullsample: 1
 
-Found 2914 entries with 5 features.
+Found 2510 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.2417   0.3433   0.2667   0.0848   0.0635
-   0.1400   0.0781   0.0754   0.2407   0.4658
-   0.0933   0.2053   0.3713   0.2260   0.1041
-   0.4524   0.3044   0.1796   0.0305   0.0331
-   0.0726   0.0689   0.1070   0.4180   0.3335
+   0.1167   0.0823   0.2564   0.3847   0.1599
+   0.3686   0.2741   0.0589   0.1584   0.1400
+   0.1111   0.2051   0.3152   0.3174   0.0512
+   0.1834   0.0961   0.0746   0.0250   0.6209
+   0.2202   0.3424   0.2949   0.1145   0.0280
 
 Running bootstrap resamples
 storing means
@@ -964,7 +974,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.031 
+      Finished a HyperHMM run. Elapsed =  0.035 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 267 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 268 ]
@@ -1008,17 +1018,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 546203106
+  seed: 324252252
   nboot: 0
   fullsample: 1
 
-Found 735 entries with 5 features.
+Found 1132 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.0689   0.0675   0.2520   0.1618   0.4498
-   0.0671   0.1273   0.2007   0.3328   0.2721
-   0.0685   0.1275   0.2245   0.3753   0.2042
-   0.2305   0.4189   0.1699   0.1229   0.0578
-   0.5650   0.2588   0.1529   0.0072   0.0161
+   0.0402   0.0446   0.1109   0.6823   0.1220
+   0.0485   0.4246   0.4056   0.1094   0.0119
+   0.0476   0.3801   0.4219   0.1223   0.0281
+   0.8547   0.1044   0.0074   0.0104   0.0231
+   0.0090   0.0463   0.0542   0.0756   0.8149
 
 Running bootstrap resamples
 storing means
@@ -1026,7 +1036,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.03 
+      Finished a HyperHMM run. Elapsed =  0.033 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 302 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 303 ]
@@ -1070,15 +1080,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 849661856
+  seed: 287268725
   nboot: 0
   fullsample: 1
 
-Found 1888 entries with 3 features.
+Found 2045 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.1069   0.5617   0.3314
-   0.7861   0.1792   0.0347
-   0.1070   0.2591   0.6339
+   0.2001   0.2288   0.5711
+   0.4002   0.3656   0.2342
+   0.3997   0.4056   0.1947
 
 Running bootstrap resamples
 storing means
@@ -1150,7 +1160,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.012 
+      Finished a HyperHMM run. Elapsed =  0.011 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 351 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 352 ]
@@ -1253,7 +1263,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.019 
+      Finished a HyperHMM run. Elapsed =  0.018 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 376 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 377 ]
@@ -1327,7 +1337,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.031 
+      Finished a HyperHMM run. Elapsed =  0.03 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 396 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 397 ]
@@ -1365,7 +1375,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.03 
+      Finished a HyperHMM run. Elapsed =  0.031 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 407 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 408 ]
@@ -1432,7 +1442,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.012 
+      Finished a HyperHMM run. Elapsed =  0.01 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 424 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 425 ]
@@ -1463,7 +1473,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.011 
+      Finished a HyperHMM run. Elapsed =  0.012 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 430 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 431 ]
@@ -1496,7 +1506,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.029 
+      Finished a HyperHMM run. Elapsed =  0.028 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 436 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 437 ]
@@ -1585,7 +1595,157 @@ creating flux
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 466 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 467 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 468 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 469 ] Done!
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 469 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 470 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 471 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 472 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 473 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 474 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 475 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 476 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 477 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 478 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 479 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 480 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 481 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 482 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 483 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 484 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 485 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 486 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 487 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 488 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 489 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 490 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 491 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 492 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 493 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 494 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 495 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 496 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 497 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 498 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 499 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 500 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 501 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 502 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 503 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 504 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 505 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 506 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 507 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 508 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 509 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 510 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 511 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 512 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 513 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 514 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 515 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 516 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 517 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 518 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 519 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 520 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 521 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 522 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 523 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 524 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 525 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 526 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 527 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 528 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 529 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 530 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 531 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 532 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 533 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 534 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 535 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 536 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 537 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 538 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 539 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 540 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 541 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 542 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 543 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 544 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 545 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 546 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 547 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 548 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 549 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 550 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 551 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 552 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 553 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 554 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 555 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 556 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 557 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 558 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 559 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 560 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 561 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 562 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 563 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 564 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 565 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 566 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 567 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 568 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 569 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 570 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 571 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 572 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 573 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 574 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 575 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 576 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 577 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 578 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 579 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 580 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 581 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 582 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 583 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 584 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 585 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 586 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 587 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 588 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 589 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 590 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 591 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 592 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 593 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 594 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 595 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 596 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 597 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 598 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 599 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 600 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 601 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 602 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 603 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 604 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 605 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 606 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 607 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 608 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 609 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 610 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 611 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 612 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 613 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 614 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 615 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 616 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 617 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 618 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 619 ] Done!
 
 #######################################
 #### Running intervene-fitness-landscapes-TESTS.R 
@@ -1595,7 +1755,7 @@ creating flux
 ══ Testing intervene-fitness-landscapes-TESTS.R ════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  129979100 
+ Seed used was  427987690 
 
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
@@ -1647,26 +1807,21 @@ creating flux
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 45 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 46 ]  ... iter = 1
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
 CFGT_Check failed: Average number of mutations too small
   ... iter = 2
 CFGT_Check failed: Some genes less than min freq
-  ... iter = 3
-
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 47 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 48 ]  ... iter = 1
-
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 49 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 50 ]  ... iter = 1
-CFGT_Check failed: Some genes less than min freq
 CFGT_Check failed: Average number of mutations too small
-  ... iter = 2
-CFGT_Check failed: Some genes less than min freq
   ... iter = 3
-CFGT_Check failed: WT less than min
+CFGT_Check failed: Some genes less than min freq
   ... iter = 4
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: WT more than max
+CFGT_Check failed: Num. genots at least 0.01 not reached
+CFGT_Check failed: Average number of mutations too small
   ... iter = 5
 CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: WT more than max
+CFGT_Check failed: Average number of mutations too small
   ... iter = 6
 CFGT_Check failed: Some genes less than min freq
 CFGT_Check failed: WT more than max
@@ -1674,52 +1829,140 @@ CFGT_Check failed: Num. genots at least 0.01 not reached
 CFGT_Check failed: Average number of mutations too small
   ... iter = 7
 CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
   ... iter = 8
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT less than min
+CFGT_Check failed: Some genes more than max freq
+CFGT_Check failed: Average number of mutations too small
   ... iter = 9
 CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: WT more than max
+CFGT_Check failed: Average number of mutations too small
   ... iter = 10
 CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Num. genots at least 0.01 not reached
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 11
+CFGT_Check failed: Some genes less than min freq
+  ... iter = 12
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Some genes more than max freq
+  ... iter = 13
+CFGT_Check failed: Some genes less than min freq
+  ... iter = 14
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 47 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 48 ]  ... iter = 1
+CFGT_Check failed: Some genes less than min freq
+  ... iter = 2
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 49 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 50 ]  ... iter = 1
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 2
+CFGT_Check failed: WT less than min
+  ... iter = 3
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 4
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 5
+CFGT_Check failed: Some genes less than min freq
+  ... iter = 6
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 7
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 8
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Num. genots at least 0.01 not reached
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 9
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: WT less than min
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 10
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: WT more than max
+CFGT_Check failed: Num. genots at least 0.01 not reached
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 11
+CFGT_Check failed: Some genes less than min freq
+  ... iter = 12
+CFGT_Check failed: Some genes less than min freq
+  ... iter = 13
+  ... iter = 14
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Num. genots at least 0.01 not reached
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 15
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 51 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 52 ]  ... iter = 1
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 2
+CFGT_Check failed: Some genes less than min freq
+  ... iter = 3
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: WT more than max
+CFGT_Check failed: Num. genots at least 0.01 not reached
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 4
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 5
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 6
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 7
+CFGT_Check failed: Some genes less than min freq
+  ... iter = 8
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 9
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 10
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: WT more than max
+CFGT_Check failed: Num. genots at least 0.01 not reached
 CFGT_Check failed: Average number of mutations too small
   ... iter = 11
 CFGT_Check failed: Some genes less than min freq
 CFGT_Check failed: Average number of mutations too small
   ... iter = 12
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: Average number of mutations too small
   ... iter = 13
 CFGT_Check failed: Some genes less than min freq
 CFGT_Check failed: Average number of mutations too small
   ... iter = 14
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: Num. genots at least 0.01 not reached
 CFGT_Check failed: Average number of mutations too small
   ... iter = 15
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
-CFGT_Check failed: Num. genots at least 0.01 not reached
 CFGT_Check failed: Average number of mutations too small
   ... iter = 16
 CFGT_Check failed: Some genes less than min freq
 CFGT_Check failed: Average number of mutations too small
   ... iter = 17
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
 CFGT_Check failed: Average number of mutations too small
   ... iter = 18
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
-CFGT_Check failed: Num. genots at least 0.01 not reached
 CFGT_Check failed: Average number of mutations too small
   ... iter = 19
-
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 51 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 52 ]  ... iter = 1
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT less than min
-  ... iter = 2
-  ... iter = 3
+CFGT_Check failed: WT more than max
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 20
+CFGT_Check failed: Some genes less than min freq
+CFGT_Check failed: Average number of mutations too small
+  ... iter = 21
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 53 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 54 ]  ... iter = 1
@@ -1727,189 +1970,74 @@ CFGT_Check failed: Some genes less than min freq
 CFGT_Check failed: WT more than max
 CFGT_Check failed: Average number of mutations too small
   ... iter = 2
-CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
-CFGT_Check failed: Average number of mutations too small
-  ... iter = 3
-CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
-  ... iter = 4
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 55 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 56 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 57 ]  ... iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.224943599011749
+ ... generating suitable HESBCN model.  graph_density = 0.23585083829239
          edges condition not fulfilled. hesbcn_iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.311522757261992
+ ... generating suitable HESBCN model.  graph_density = 0.296900908555836
          edges condition not fulfilled. hesbcn_iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.158306809421629
-         edges condition not fulfilled. hesbcn_iter = 3
- ... generating suitable HESBCN model.  graph_density = 0.208513629995286
-         edges condition not fulfilled. hesbcn_iter = 4
- ... generating suitable HESBCN model.  graph_density = 0.41229364676401
+ ... generating suitable HESBCN model.  graph_density = 0.446809314191341
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
-CFGT_Check failed: Average number of mutations too small
   ... iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.221606866829097
+ ... generating suitable HESBCN model.  graph_density = 0.161039007548243
          edges condition not fulfilled. hesbcn_iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.482189909927547
+ ... generating suitable HESBCN model.  graph_density = 0.165239263512194
          edges condition not fulfilled. hesbcn_iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.10503843864426
-         edges condition not fulfilled. hesbcn_iter = 3
- ... generating suitable HESBCN model.  graph_density = 0.367928697541356
-         edges condition not fulfilled. hesbcn_iter = 4
- ... generating suitable HESBCN model.  graph_density = 0.488419268466532
-CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
-  ... iter = 3
- ... generating suitable HESBCN model.  graph_density = 0.417973491176963
-CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
-  ... iter = 4
- ... generating suitable HESBCN model.  graph_density = 0.410231285821646
-         edges condition not fulfilled. hesbcn_iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.432594801206142
-         edges condition not fulfilled. hesbcn_iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.463991867285222
-         edges condition not fulfilled. hesbcn_iter = 3
- ... generating suitable HESBCN model.  graph_density = 0.312369089387357
+ ... generating suitable HESBCN model.  graph_density = 0.35449559437111
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 58 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 59 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 60 ]  ... iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.27381943250075
-         edges condition not fulfilled. hesbcn_iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.172806476894766
-         edges condition not fulfilled. hesbcn_iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.146608823072165
-         edges condition not fulfilled. hesbcn_iter = 3
- ... generating suitable HESBCN model.  graph_density = 0.283131719008088
-         edges condition not fulfilled. hesbcn_iter = 4
- ... generating suitable HESBCN model.  graph_density = 0.377278274577111
-         edges condition not fulfilled. hesbcn_iter = 5
- ... generating suitable HESBCN model.  graph_density = 0.219167432188988
-         edges condition not fulfilled. hesbcn_iter = 6
- ... generating suitable HESBCN model.  graph_density = 0.256048785150051
-         edges condition not fulfilled. hesbcn_iter = 7
- ... generating suitable HESBCN model.  graph_density = 0.11780050387606
-         edges condition not fulfilled. hesbcn_iter = 8
- ... generating suitable HESBCN model.  graph_density = 0.34142392417416
-CFGT_Check failed: Some genes less than min freq
+ ... generating suitable HESBCN model.  graph_density = 0.449049566406757
 CFGT_Check failed: WT more than max
   ... iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.39490467980504
+ ... generating suitable HESBCN model.  graph_density = 0.164763719029725
          edges condition not fulfilled. hesbcn_iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.312846503406763
+ ... generating suitable HESBCN model.  graph_density = 0.141672706138343
          edges condition not fulfilled. hesbcn_iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.349114945251495
+ ... generating suitable HESBCN model.  graph_density = 0.381697229947895
          edges condition not fulfilled. hesbcn_iter = 3
- ... generating suitable HESBCN model.  graph_density = 0.455425253231078
+ ... generating suitable HESBCN model.  graph_density = 0.486110012140125
+CFGT_Check failed: WT more than max
+  ... iter = 3
+ ... generating suitable HESBCN model.  graph_density = 0.197543334774673
+         edges condition not fulfilled. hesbcn_iter = 1
+ ... generating suitable HESBCN model.  graph_density = 0.476806900557131
+         edges condition not fulfilled. hesbcn_iter = 2
+ ... generating suitable HESBCN model.  graph_density = 0.245173618942499
+         edges condition not fulfilled. hesbcn_iter = 3
+ ... generating suitable HESBCN model.  graph_density = 0.433246805518866
          edges condition not fulfilled. hesbcn_iter = 4
- ... generating suitable HESBCN model.  graph_density = 0.311505207698792
+ ... generating suitable HESBCN model.  graph_density = 0.474307013209909
+         edges condition not fulfilled. hesbcn_iter = 5
+ ... generating suitable HESBCN model.  graph_density = 0.265599393565208
+         edges condition not fulfilled. hesbcn_iter = 6
+ ... generating suitable HESBCN model.  graph_density = 0.107475147768855
+         edges condition not fulfilled. hesbcn_iter = 7
+ ... generating suitable HESBCN model.  graph_density = 0.428472399432212
+         edges condition not fulfilled. hesbcn_iter = 8
+ ... generating suitable HESBCN model.  graph_density = 0.295340182539076
+         edges condition not fulfilled. hesbcn_iter = 9
+ ... generating suitable HESBCN model.  graph_density = 0.108202335331589
+         edges condition not fulfilled. hesbcn_iter = 10
+ ... generating suitable HESBCN model.  graph_density = 0.150044451467693
+         edges condition not fulfilled. hesbcn_iter = 11
+ ... generating suitable HESBCN model.  graph_density = 0.190250277984887
+         edges condition not fulfilled. hesbcn_iter = 12
+ ... generating suitable HESBCN model.  graph_density = 0.305109939165413
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 61 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 62 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 63 ]  ... iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.31526950923726
-         edges condition not fulfilled. hesbcn_iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.218858922459185
-         edges condition not fulfilled. hesbcn_iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.383550357911736
-         edges condition not fulfilled. hesbcn_iter = 3
- ... generating suitable HESBCN model.  graph_density = 0.213623122312129
-         edges condition not fulfilled. hesbcn_iter = 4
- ... generating suitable HESBCN model.  graph_density = 0.167444525286555
-         edges condition not fulfilled. hesbcn_iter = 5
- ... generating suitable HESBCN model.  graph_density = 0.106465144548565
-         edges condition not fulfilled. hesbcn_iter = 6
- ... generating suitable HESBCN model.  graph_density = 0.307310644257814
-         edges condition not fulfilled. hesbcn_iter = 7
- ... generating suitable HESBCN model.  graph_density = 0.429150359891355
-         edges condition not fulfilled. hesbcn_iter = 8
- ... generating suitable HESBCN model.  graph_density = 0.380130294431001
-         edges condition not fulfilled. hesbcn_iter = 9
- ... generating suitable HESBCN model.  graph_density = 0.129512279853225
-         edges condition not fulfilled. hesbcn_iter = 10
- ... generating suitable HESBCN model.  graph_density = 0.194176358450204
-         edges condition not fulfilled. hesbcn_iter = 11
- ... generating suitable HESBCN model.  graph_density = 0.354907523095608
-         edges condition not fulfilled. hesbcn_iter = 12
- ... generating suitable HESBCN model.  graph_density = 0.400279894191772
-CFGT_Check failed: Some genes less than min freq
-  ... iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.390680764056742
-         edges condition not fulfilled. hesbcn_iter = 1
- ... generating suitable HESBCN model.  graph_density = 0.124303229246289
-         edges condition not fulfilled. hesbcn_iter = 2
- ... generating suitable HESBCN model.  graph_density = 0.303264411259443
-         edges condition not fulfilled. hesbcn_iter = 3
- ... generating suitable HESBCN model.  graph_density = 0.480824356712401
-         edges condition not fulfilled. hesbcn_iter = 4
- ... generating suitable HESBCN model.  graph_density = 0.376955044921488
-         edges condition not fulfilled. hesbcn_iter = 5
- ... generating suitable HESBCN model.  graph_density = 0.379662654921412
-         edges condition not fulfilled. hesbcn_iter = 6
- ... generating suitable HESBCN model.  graph_density = 0.345129831694067
-         edges condition not fulfilled. hesbcn_iter = 7
- ... generating suitable HESBCN model.  graph_density = 0.383680655248463
-         edges condition not fulfilled. hesbcn_iter = 8
- ... generating suitable HESBCN model.  graph_density = 0.375165500119329
-         edges condition not fulfilled. hesbcn_iter = 9
- ... generating suitable HESBCN model.  graph_density = 0.397410563100129
-         edges condition not fulfilled. hesbcn_iter = 10
- ... generating suitable HESBCN model.  graph_density = 0.39056488154456
-         edges condition not fulfilled. hesbcn_iter = 11
- ... generating suitable HESBCN model.  graph_density = 0.401442243065685
-         edges condition not fulfilled. hesbcn_iter = 12
- ... generating suitable HESBCN model.  graph_density = 0.361708312295377
-         edges condition not fulfilled. hesbcn_iter = 13
- ... generating suitable HESBCN model.  graph_density = 0.310380033962429
-         edges condition not fulfilled. hesbcn_iter = 14
- ... generating suitable HESBCN model.  graph_density = 0.458563076984137
-         edges condition not fulfilled. hesbcn_iter = 15
- ... generating suitable HESBCN model.  graph_density = 0.16948232781142
-         edges condition not fulfilled. hesbcn_iter = 16
- ... generating suitable HESBCN model.  graph_density = 0.489898641966283
-         edges condition not fulfilled. hesbcn_iter = 17
- ... generating suitable HESBCN model.  graph_density = 0.124729562364519
-         edges condition not fulfilled. hesbcn_iter = 18
- ... generating suitable HESBCN model.  graph_density = 0.336491164471954
-         edges condition not fulfilled. hesbcn_iter = 19
- ... generating suitable HESBCN model.  graph_density = 0.189881059248
-         edges condition not fulfilled. hesbcn_iter = 20
- ... generating suitable HESBCN model.  graph_density = 0.300845896545798
-         edges condition not fulfilled. hesbcn_iter = 21
- ... generating suitable HESBCN model.  graph_density = 0.438901915960014
-         edges condition not fulfilled. hesbcn_iter = 22
- ... generating suitable HESBCN model.  graph_density = 0.343314547557384
-         edges condition not fulfilled. hesbcn_iter = 23
- ... generating suitable HESBCN model.  graph_density = 0.138998910505325
-         edges condition not fulfilled. hesbcn_iter = 24
- ... generating suitable HESBCN model.  graph_density = 0.305433333944529
-         edges condition not fulfilled. hesbcn_iter = 25
- ... generating suitable HESBCN model.  graph_density = 0.28174754595384
-         edges condition not fulfilled. hesbcn_iter = 26
- ... generating suitable HESBCN model.  graph_density = 0.30131949884817
-         edges condition not fulfilled. hesbcn_iter = 27
- ... generating suitable HESBCN model.  graph_density = 0.459498129505664
-         edges condition not fulfilled. hesbcn_iter = 28
- ... generating suitable HESBCN model.  graph_density = 0.306093688309193
-         edges condition not fulfilled. hesbcn_iter = 29
- ... generating suitable HESBCN model.  graph_density = 0.328694940730929
-         edges condition not fulfilled. hesbcn_iter = 30
- ... generating suitable HESBCN model.  graph_density = 0.497475230693817
+ ... generating suitable HESBCN model.  graph_density = 0.303596940729767
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 64 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 65 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 66 ]  ... iter = 1
 CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: Average number of mutations too small
   ... iter = 2
-CFGT_Check failed: Some genes less than min freq
-CFGT_Check failed: WT more than max
-CFGT_Check failed: Average number of mutations too small
-  ... iter = 3
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 67 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 68 ]  ... iter = 1
@@ -1918,17 +2046,17 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 69 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 70 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ]
-
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ]
 
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ]
+
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 70 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 71 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 72 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 73 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 74 ]
- Seed used was  662458788 
+ Seed used was  236098101 
  Done!
 
 #######################################
@@ -1939,7 +2067,7 @@ In ev2_adjm_rm_no_access
 ══ Testing kill-CBN-TESTS.R ════════════════════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  869722906 
+ Seed used was  915995657 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
@@ -1959,12 +2087,12 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 16 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 17 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 18 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
 
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
+
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 18 ]
@@ -2022,7 +2150,7 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 43 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 44 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 45 ]
- Seed used was  35664051 
+ Seed used was  911404570 
 
  CBN DAG_2 : n = 10 genes
 
@@ -2153,7 +2281,7 @@ In ev2_adjm_rm_no_access
 ══ Testing kill-gene-equivalences-TESTS.R ══════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  509615380 
+ Seed used was  939162868 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
@@ -2195,7 +2323,7 @@ Killing by setting parameters to 0
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 20 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 21 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 22 ]
- Seed used was  605270161 
+ Seed used was  787810053 
 Standard DAG intervention identical to setting parameters to 0
  #################### Doing iteration  1 
 
@@ -2226,7 +2354,8 @@ Standard DAG intervention identical to setting parameters to 0
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
@@ -2238,7 +2367,6 @@ Standard DAG intervention identical to setting parameters to 0
  #################### Doing iteration  2 
 
 
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
@@ -2291,8 +2419,8 @@ Standard DAG intervention identical to setting parameters to 0
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
@@ -2380,7 +2508,8 @@ Standard DAG intervention identical to setting parameters to 0
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
@@ -2409,18 +2538,18 @@ Standard DAG intervention identical to setting parameters to 0
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
@@ -2492,8 +2621,8 @@ Standard DAG intervention identical to setting parameters to 0
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
@@ -2521,19 +2650,19 @@ Standard DAG intervention identical to setting parameters to 0
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
@@ -2579,7 +2708,7 @@ Standard DAG intervention identical to setting parameters to 0
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
- Seed used was  105655563 
+ Seed used was  784736374 
 CBN and H-ESBCN: intervene by modifying the fitness landscape identical to DAG intervention
  #################### Doing iteration  1 
 
@@ -2611,7 +2740,7 @@ CBN and H-ESBCN: intervene by modifying the fitness landscape identical to DAG i
  #################### Doing iteration  10 
 
 
- Seed used was  896406004 
+ Seed used was  92722803 
 CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervened gene
  #################### Doing iteration  1 
 
@@ -2622,6 +2751,7 @@ CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervene
  #################### Doing iteration  3 
 
 
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
  #################### Doing iteration  4 
 
 
@@ -2631,20 +2761,20 @@ CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervene
  #################### Doing iteration  6 
 
 
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
  #################### Doing iteration  7 
 
 
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
  #################### Doing iteration  8 
 
 
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ]
  #################### Doing iteration  9 
 
 
  #################### Doing iteration  10 
 
- Done!
+
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 22 ] Done!
 
 #######################################
 #### Running kill-HESBCN-TESTS.R 
@@ -2654,7 +2784,7 @@ CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervene
 ══ Testing kill-HESBCN-TESTS.R ═════════════════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  424358618 
+ Seed used was  933820981 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
@@ -2687,7 +2817,7 @@ CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervene
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 29 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 30 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 31 ]
- Seed used was  737392205 
+ Seed used was  524695950 
 
  DAG_2 combo 1 of 27 : rel_H = AND , rel_I = AND , rel_A = AND 
 
@@ -4696,7 +4826,7 @@ CBN, H-ESBCN, MHN: remove, from transition rate matrix, genotypes with intervene
 ══ Testing kill-HyperHMM-TESTS.R ═══════════════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  852356784 
+ Seed used was  308807356 
 
  Starting a HyperHMM run
 == HyperHMM ==
@@ -4705,15 +4835,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 53320419
+  seed: 242968206
   nboot: 0
   fullsample: 1
 
 Found 1000 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.5595   0.3728   0.0677
-   0.1553   0.1476   0.6971
-   0.2852   0.4796   0.2352
+   0.4203   0.5472   0.0325
+   0.0468   0.0565   0.8967
+   0.5329   0.3963   0.0708
 
 Running bootstrap resamples
 storing means
@@ -4721,7 +4851,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.016 
+      Finished a HyperHMM run. Elapsed =  0.015 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
  ##### Doing rep =  1 
@@ -4735,15 +4865,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 189562454
+  seed: 854103154
   nboot: 0
   fullsample: 1
 
-Found 1291 entries with 3 features.
+Found 1788 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.9574   0.0242   0.0184
-   0.0084   0.3256   0.6660
-   0.0342   0.6502   0.3156
+   0.2175   0.3874   0.3951
+   0.6079   0.2114   0.1807
+   0.1746   0.4012   0.4242
 
 Running bootstrap resamples
 storing means
@@ -4751,10 +4881,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.013 
+      Finished a HyperHMM run. Elapsed =  0.011 
 used_prob.set:
          0         1         2         3 
-0.0580945 0.5158792 0.3563129 0.0697134 
+0.2019016 0.2522371 0.2511186 0.2947427 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 3 ]
@@ -4778,17 +4908,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 661513560
+  seed: 855192945
   nboot: 0
   fullsample: 1
 
-Found 840 entries with 5 features.
+Found 1481 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.0700   0.0335   0.1955   0.0002   0.7008
-   0.0374   0.0345   0.4068   0.4040   0.1173
-   0.0433   0.0030   0.2659   0.5260   0.1618
-   0.1811   0.6833   0.0934   0.0306   0.0116
-   0.6682   0.2457   0.0384   0.0392   0.0085
+   0.2976   0.2496   0.2123   0.2037   0.0368
+   0.4694   0.1803   0.1661   0.0929   0.0913
+   0.0767   0.1440   0.1271   0.1858   0.4664
+   0.1263   0.3632   0.2679   0.2081   0.0345
+   0.0300   0.0629   0.2266   0.3095   0.3710
 
 Running bootstrap resamples
 storing means
@@ -4796,10 +4926,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.033 
+      Finished a HyperHMM run. Elapsed =  0.031 
 used_prob.set: 
-         0          1          2          3          4          5 
-0.07619048 0.12261905 0.19166667 0.21785714 0.28452381 0.10714286 
+        0         1         2         3         4         5 
+0.1444970 0.1829845 0.1640783 0.1708305 0.1762323 0.1613774 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 15 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 16 ]
@@ -4822,15 +4952,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 45011724
+  seed: 873524349
   nboot: 0
   fullsample: 1
 
-Found 2012 entries with 3 features.
+Found 705 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.0478   0.4416   0.5106
-   0.0813   0.5429   0.3758
-   0.8709   0.0155   0.1136
+   0.0512   0.0397   0.9091
+   0.8016   0.1741   0.0243
+   0.1472   0.7862   0.0666
 
 Running bootstrap resamples
 storing means
@@ -4841,7 +4971,7 @@ creating flux
       Finished a HyperHMM run. Elapsed =  0.013 
 used_prob.set:
           0          1          2          3 
-0.04572565 0.15407555 0.24751491 0.55268390 
+0.08652482 0.22695035 0.52056738 0.16595745 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 25 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 26 ]
@@ -4865,17 +4995,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 679841589
+  seed: 840582746
   nboot: 0
   fullsample: 1
 
-Found 2549 entries with 5 features.
+Found 2982 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.5118   0.2411   0.1349   0.0870   0.0252
-   0.1566   0.1759   0.1064   0.3959   0.1652
-   0.1942   0.3014   0.3192   0.1512   0.0340
-   0.0337   0.0414   0.1141   0.1020   0.7088
-   0.1037   0.2402   0.3254   0.2639   0.0668
+   0.0313   0.0538   0.0515   0.0746   0.7888
+   0.0971   0.0387   0.1952   0.5290   0.1400
+   0.2486   0.1333   0.2820   0.2742   0.0619
+   0.1509   0.4646   0.3064   0.0734   0.0047
+   0.4721   0.3096   0.1649   0.0488   0.0046
 
 Running bootstrap resamples
 storing means
@@ -4883,10 +5013,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.034 
+      Finished a HyperHMM run. Elapsed =  0.032 
 used_prob.set: 
          0          1          2          3          4          5 
-0.15731659 0.18085524 0.19537073 0.21380934 0.18909376 0.06355434 
+0.10731053 0.09624413 0.13078471 0.20556673 0.32595573 0.13413816 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 38 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 39 ]
@@ -4909,15 +5039,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 440107792
+  seed: 780062524
   nboot: 0
   fullsample: 1
 
-Found 891 entries with 3 features.
+Found 1945 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.7245   0.2586   0.0169
-   0.2247   0.7118   0.0635
-   0.0508   0.0296   0.9196
+   0.1589   0.2933   0.5478
+   0.3321   0.2962   0.3717
+   0.5090   0.4105   0.0805
 
 Running bootstrap resamples
 storing means
@@ -4925,10 +5055,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.013 
+      Finished a HyperHMM run. Elapsed =  0.012 
 used_prob.set:
           0          1          2          3 
-0.16610550 0.32098765 0.45903479 0.05387205 
+0.43650386 0.31465296 0.17223650 0.07660668 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 48 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 49 ]
@@ -4952,17 +5082,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 173805163
+  seed: 375493203
   nboot: 0
   fullsample: 1
 
-Found 1598 entries with 5 features.
+Found 862 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.1258   0.5402   0.2870   0.0364   0.0106
-   0.0787   0.1404   0.3928   0.3588   0.0293
-   0.0334   0.0094   0.0175   0.0592   0.8805
-   0.1412   0.1977   0.2165   0.3756   0.0690
-   0.6209   0.1123   0.0862   0.1700   0.0106
+   0.3929   0.3903   0.0188   0.1442   0.0538
+   0.2747   0.3835   0.2217   0.0821   0.0380
+   0.0112   0.0904   0.3190   0.5093   0.0701
+   0.0613   0.0111   0.0883   0.0589   0.7804
+   0.2599   0.1247   0.3522   0.2055   0.0577
 
 Running bootstrap resamples
 storing means
@@ -4970,10 +5100,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.032 
+      Finished a HyperHMM run. Elapsed =  0.036 
 used_prob.set: 
-          0           1           2           3           4           5 
-0.175844806 0.229662078 0.200876095 0.237171464 0.149561952 0.006883605 
+        0         1         2         3         4         5 
+0.1090487 0.1044084 0.1310905 0.1473318 0.2389791 0.2691415 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 61 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 62 ]
@@ -4996,15 +5126,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 194950457
+  seed: 830119664
   nboot: 0
   fullsample: 1
 
-Found 1172 entries with 3 features.
+Found 2387 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.1937   0.2856   0.5207
-   0.3284   0.3496   0.3220
-   0.4779   0.3648   0.1573
+   0.0838   0.6680   0.2482
+   0.0576   0.2115   0.7309
+   0.8586   0.1205   0.0209
 
 Running bootstrap resamples
 storing means
@@ -5015,7 +5145,7 @@ creating flux
       Finished a HyperHMM run. Elapsed =  0.012 
 used_prob.set:
          0         1         2         3 
-0.2346416 0.3558020 0.2679181 0.1416382 
+0.1571010 0.4021785 0.3372434 0.1034772 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 71 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 72 ]
@@ -5039,17 +5169,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 193177858
+  seed: 633811320
   nboot: 0
   fullsample: 1
 
-Found 750 entries with 5 features.
+Found 819 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.1111   0.4726   0.3381   0.0714   0.0068
-   0.0293   0.0246   0.1946   0.3851   0.3664
-   0.7408   0.1352   0.0838   0.0204   0.0198
-   0.0868   0.1349   0.3759   0.2556   0.1468
-   0.0320   0.2327   0.0076   0.2675   0.4602
+   0.5562   0.2003   0.1571   0.0724   0.0140
+   0.2219   0.4611   0.0104   0.2614   0.0452
+   0.0822   0.1451   0.3205   0.2980   0.1542
+   0.0997   0.1446   0.4173   0.2566   0.0818
+   0.0400   0.0489   0.0947   0.1116   0.7048
 
 Running bootstrap resamples
 storing means
@@ -5057,10 +5187,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.039 
+      Finished a HyperHMM run. Elapsed =  0.038 
 used_prob.set: 
-        0         1         2         3         4         5 
-0.1226667 0.1986667 0.1786667 0.1973333 0.1946667 0.1080000 
+         0          1          2          3          4          5 
+0.09645910 0.17826618 0.21733822 0.26862027 0.17216117 0.06715507 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 84 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 85 ]
@@ -5083,15 +5213,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 497681138
+  seed: 766725749
   nboot: 0
   fullsample: 1
 
-Found 2509 entries with 3 features.
+Found 2126 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.1457   0.0129   0.8414
-   0.5924   0.3730   0.0346
-   0.2619   0.6141   0.1240
+   0.1451   0.5401   0.3148
+   0.6663   0.2190   0.1147
+   0.1886   0.2409   0.5705
 
 Running bootstrap resamples
 storing means
@@ -5099,10 +5229,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.012 
+      Finished a HyperHMM run. Elapsed =  0.011 
 used_prob.set:
-         0         1         2         3 
-0.3064966 0.2463133 0.3395775 0.1076126 
+          0          1          2          3 
+0.33490122 0.41486359 0.20460960 0.04562559 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 94 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 95 ]
@@ -5126,17 +5256,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 986961504
+  seed: 343417069
   nboot: 0
   fullsample: 1
 
-Found 2282 entries with 5 features.
+Found 1435 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.1355   0.1893   0.2410   0.2618   0.1724
-   0.3071   0.1647   0.1596   0.1650   0.2036
-   0.3775   0.3245   0.1843   0.0954   0.0183
-   0.1020   0.1622   0.2295   0.2358   0.2705
-   0.0779   0.1593   0.1856   0.2420   0.3352
+   0.6322   0.2880   0.0450   0.0348        0
+   0.0414   0.0396   0.2114   0.2404   0.4672
+   0.1268   0.1527   0.3421   0.2559   0.1225
+   0.0952   0.2466   0.2971   0.3088   0.0523
+   0.1044   0.2731   0.1044   0.1601   0.3580
 
 Running bootstrap resamples
 storing means
@@ -5144,10 +5274,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.031 
+      Finished a HyperHMM run. Elapsed =  0.034 
 used_prob.set: 
-        0         1         2         3         4         5 
-0.1468011 0.1704645 0.1958808 0.2129711 0.1647677 0.1091148 
+          0           1           2           3           4           5 
+0.291289199 0.250871080 0.209059233 0.172822300 0.071080139 0.004878049 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 107 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 108 ]
@@ -5170,15 +5300,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 636651579
+  seed: 431698220
   nboot: 0
   fullsample: 1
 
-Found 2723 entries with 3 features.
+Found 2414 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.3094   0.3188   0.3718
-   0.3416   0.3619   0.2965
-   0.3490   0.3193   0.3317
+   0.8203   0.1570   0.0227
+   0.0572   0.0997   0.8431
+   0.1225   0.7433   0.1342
 
 Running bootstrap resamples
 storing means
@@ -5189,7 +5319,7 @@ creating flux
       Finished a HyperHMM run. Elapsed =  0.012 
 used_prob.set:
          0         1         2         3 
-0.3191333 0.3095850 0.2482556 0.1230261 
+0.1251036 0.3400994 0.4022370 0.1325601 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 117 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 118 ]
@@ -5213,17 +5343,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 646094805
+  seed: 245033173
   nboot: 0
   fullsample: 1
 
-Found 2559 entries with 5 features.
+Found 1330 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.0606   0.0764   0.0651   0.2229   0.5750
-   0.3727   0.4273   0.1835   0.0113   0.0052
-   0.1418   0.1844   0.2271   0.2435   0.2032
-   0.3356   0.1563   0.1198   0.2544   0.1339
-   0.0893   0.1556   0.4045   0.2679   0.0827
+   0.0216   0.1489   0.0567   0.0603   0.7125
+   0.8904   0.0721   0.0174   0.0086   0.0115
+   0.0110   0.1791   0.3940   0.3233   0.0926
+   0.0405   0.3314   0.1056   0.3885   0.1340
+   0.0365   0.2685   0.4263   0.2193   0.0494
 
 Running bootstrap resamples
 storing means
@@ -5231,10 +5361,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.032 
+      Finished a HyperHMM run. Elapsed =  0.034 
 used_prob.set: 
          0          1          2          3          4          5 
-0.15552950 0.17780383 0.21727237 0.23016803 0.16373583 0.05549043 
+0.08421053 0.24586466 0.21879699 0.22706767 0.17443609 0.04962406 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 130 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 131 ]
@@ -5257,15 +5387,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 186809648
+  seed: 213614697
   nboot: 0
   fullsample: 1
 
-Found 2283 entries with 3 features.
+Found 1370 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.0263   0.2602   0.7135
-   0.0590   0.7087   0.2323
-   0.9147   0.0311   0.0542
+   0.5069   0.3983   0.0948
+   0.0796   0.1025   0.8179
+   0.4135   0.4992   0.0873
 
 Running bootstrap resamples
 storing means
@@ -5275,8 +5405,8 @@ creating flux
 
       Finished a HyperHMM run. Elapsed =  0.012 
 used_prob.set:
-         0         1         2         3 
-0.2172580 0.4897065 0.1852825 0.1077530 
+          0          1          2          3 
+0.04963504 0.08467153 0.37007299 0.49562044 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 140 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 141 ]
@@ -5300,17 +5430,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 660660949
+  seed: 862079823
   nboot: 0
   fullsample: 1
 
-Found 2261 entries with 5 features.
+Found 524 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.1863   0.4007   0.1874   0.1695   0.0561
-   0.0574   0.1008   0.2640   0.3724   0.2054
-   0.6249   0.2261   0.0997   0.0390   0.0103
-   0.0800   0.1965   0.4094   0.2507   0.0634
-   0.0514   0.0759   0.0395   0.1684   0.6648
+   0.0104   0.0902   0.0071   0.1329   0.7594
+   0.1329   0.1686   0.6049   0.0766   0.0170
+   0.0428   0.0075   0.0963   0.6623   0.1911
+   0.4931   0.2930   0.1360   0.0704   0.0075
+   0.3208   0.4407   0.1557   0.0578   0.0250
 
 Running bootstrap resamples
 storing means
@@ -5321,7 +5451,7 @@ creating flux
       Finished a HyperHMM run. Elapsed =  0.031 
 used_prob.set: 
          0          1          2          3          4          5 
-0.10614772 0.19239275 0.24458204 0.23662096 0.18664308 0.03361345 
+0.10114504 0.16221374 0.21183206 0.25000000 0.23091603 0.04389313 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 153 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 154 ]
@@ -5344,15 +5474,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 747180928
+  seed: 594254663
   nboot: 0
   fullsample: 1
 
-Found 1881 entries with 3 features.
+Found 1008 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.6899   0.2678   0.0423
-   0.2134   0.7022   0.0844
-   0.0967   0.0300   0.8733
+   0.4155   0.2993   0.2852
+   0.1153   0.5611   0.3236
+   0.4692   0.1396   0.3912
 
 Running bootstrap resamples
 storing means
@@ -5363,7 +5493,7 @@ creating flux
       Finished a HyperHMM run. Elapsed =  0.012 
 used_prob.set:
          0         1         2         3 
-0.1461988 0.2929293 0.4056353 0.1552366 
+0.1785714 0.3720238 0.3125000 0.1369048 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 163 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 164 ]
@@ -5387,17 +5517,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 169952155
+  seed: 182048733
   nboot: 0
   fullsample: 1
 
-Found 1745 entries with 5 features.
+Found 1654 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.3045   0.3368   0.2739   0.0635   0.0213
-   0.0787   0.0052   0.0478   0.2511   0.6172
-   0.0849   0.1090   0.1313   0.3735   0.3013
-   0.3360   0.3825   0.1738   0.0914   0.0163
-   0.1959   0.1665   0.3732   0.2205   0.0439
+   0.0703   0.1323   0.2453   0.3733   0.1788
+   0.6759   0.1325   0.0708   0.0902   0.0306
+   0.0321   0.0695   0.0789   0.1310   0.6885
+   0.1348   0.3821   0.3078   0.1590   0.0163
+   0.0869   0.2836   0.2972   0.2465   0.0858
 
 Running bootstrap resamples
 storing means
@@ -5407,8 +5537,8 @@ creating flux
 
       Finished a HyperHMM run. Elapsed =  0.03 
 used_prob.set: 
-        0         1         2         3         4         5 
-0.1174785 0.1627507 0.1627507 0.2366762 0.2091691 0.1111748 
+         0          1          2          3          4          5 
+0.12938331 0.21463120 0.23639661 0.21704958 0.15114873 0.05139057 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 176 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 177 ]
@@ -5431,15 +5561,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 273577217
+  seed: 305277126
   nboot: 0
   fullsample: 1
 
-Found 1500 entries with 3 features.
+Found 746 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.1224   0.3604   0.5172
-   0.4218   0.3139   0.2643
-   0.4558   0.3257   0.2185
+   0.1530   0.6162   0.2308
+   0.7720   0.1777   0.0503
+   0.0750   0.2061   0.7189
 
 Running bootstrap resamples
 storing means
@@ -5450,7 +5580,7 @@ creating flux
       Finished a HyperHMM run. Elapsed =  0.011 
 used_prob.set:
          0         1         2         3 
-0.2233333 0.3226667 0.2766667 0.1773333 
+0.1005362 0.2520107 0.3739946 0.2734584 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 186 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 187 ]
@@ -5474,17 +5604,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 252684210
+  seed: 490159836
   nboot: 0
   fullsample: 1
 
-Found 2696 entries with 5 features.
+Found 1274 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.5267   0.2725   0.1315   0.0536   0.0157
-   0.0836   0.1016   0.1848   0.2708   0.3592
-   0.1214   0.2030   0.2456   0.1988   0.2312
-   0.1187   0.1363   0.2138   0.2939   0.2373
-   0.1496   0.2866   0.2243   0.1829   0.1566
+   0.2325   0.3876   0.1332   0.1943   0.0524
+   0.0224   0.0351   0.1471   0.2478   0.5476
+   0.2739   0.2722   0.3769   0.0609   0.0161
+   0.3168   0.1767   0.2058   0.2010   0.0997
+   0.1544   0.1284   0.1370   0.2960   0.2842
 
 Running bootstrap resamples
 storing means
@@ -5492,10 +5622,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.033 
+      Finished a HyperHMM run. Elapsed =  0.032 
 used_prob.set: 
-         0          1          2          3          4          5 
-0.16246291 0.21624629 0.25074184 0.21995549 0.11572700 0.03486647 
+        0         1         2         3         4         5 
+0.1475667 0.1609105 0.2394035 0.2386185 0.1734694 0.0400314 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 199 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 200 ]
@@ -5518,15 +5648,15 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 147877585
+  seed: 249315915
   nboot: 0
   fullsample: 1
 
-Found 1648 entries with 3 features.
+Found 2210 entries with 3 features.
 Mean ordering matrix from sampling:
-   0.1182   0.2196   0.6622
-   0.5890   0.3238   0.0872
-   0.2928   0.4566   0.2506
+   0.7892   0.1904   0.0204
+   0.0744   0.1782   0.7474
+   0.1364   0.6314   0.2322
 
 Running bootstrap resamples
 storing means
@@ -5536,8 +5666,8 @@ creating flux
 
       Finished a HyperHMM run. Elapsed =  0.012 
 used_prob.set:
-         0         1         2         3 
-0.1243932 0.2190534 0.3100728 0.3464806 
+          0          1          2          3 
+0.23936652 0.38099548 0.31855204 0.06108597 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 209 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 210 ]
@@ -5561,17 +5691,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 983270935
+  seed: 12356209
   nboot: 0
   fullsample: 1
 
-Found 984 entries with 5 features.
+Found 1099 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.2927   0.2877   0.1531   0.2407   0.0258
-   0.2769   0.1558   0.3895   0.1543   0.0235
-   0.0610   0.0155   0.0311   0.1555   0.7369
-   0.1889   0.1745   0.1473   0.3685   0.1208
-   0.1805   0.3665   0.2790   0.0810   0.0930
+   0.3283   0.4393   0.2023   0.0086   0.0215
+   0.2571   0.0116   0.4120   0.2421   0.0772
+   0.1685   0.4561   0.2741   0.0584   0.0429
+   0.1616   0.0621   0.0810   0.3818   0.3135
+   0.0845   0.0309   0.0306   0.3091   0.5449
 
 Running bootstrap resamples
 storing means
@@ -5579,10 +5709,10 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.033 
+      Finished a HyperHMM run. Elapsed =  0.038 
 used_prob.set: 
          0          1          2          3          4          5 
-0.11991870 0.13922764 0.18292683 0.23780488 0.23069106 0.08943089 
+0.18926297 0.15923567 0.17834395 0.20291174 0.17197452 0.09827116 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 222 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 223 ]
@@ -5605,17 +5735,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 563371927
+  seed: 272427886
   nboot: 0
   fullsample: 1
 
 Found 2000 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.0680   0.0122   0.0124   0.2794   0.6280
-   0.1674   0.1324   0.0166   0.4032   0.2804
-   0.0949   0.3386   0.4500   0.0860   0.0305
-   0.1397   0.2146   0.3902   0.2053   0.0502
-   0.5300   0.3022   0.1308   0.0261   0.0109
+   0.1596   0.1465   0.2765   0.2205   0.1969
+   0.0910   0.2978   0.3019   0.1955   0.1138
+   0.5955   0.2637   0.0600   0.0617   0.0191
+   0.1093   0.1198   0.1292   0.2360   0.4057
+   0.0446   0.1722   0.2324   0.2863   0.2645
 
 Running bootstrap resamples
 storing means
@@ -5623,7 +5753,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.032 
+      Finished a HyperHMM run. Elapsed =  0.03 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 236 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 237 ]
@@ -5639,7 +5769,7 @@ creating flux
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 245 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 246 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 247 ]
- Data-derived threshold:  0.06946238 
+ Data-derived threshold:  0.04610786 
 
  Starting a HyperHMM run
 == HyperHMM ==
@@ -5648,17 +5778,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 503589274
+  seed: 556823043
   nboot: 0
   fullsample: 1
 
 Found 2000 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.0678   0.0132   0.0133   0.2819   0.6238
-   0.1629   0.1415   0.0165   0.3956   0.2835
-   0.0985   0.3353   0.4457   0.0915   0.0290
-   0.1340   0.2137   0.3923   0.2034   0.0566
-   0.5368   0.2963   0.1322   0.0276   0.0071
+   0.1536   0.1538   0.2769   0.2235   0.1922
+   0.0929   0.2972   0.2995   0.1954   0.1150
+   0.5956   0.2626   0.0640   0.0579   0.0199
+   0.1105   0.1153   0.1296   0.2423   0.4023
+   0.0474   0.1711   0.2300   0.2809   0.2706
 
 Running bootstrap resamples
 storing means
@@ -5666,7 +5796,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.032 
+      Finished a HyperHMM run. Elapsed =  0.033 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 248 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 249 ]
@@ -5684,17 +5814,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 148077467
+  seed: 976674443
   nboot: 0
   fullsample: 1
 
 Found 2000 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.0661   0.0111   0.0128   0.2811   0.6289
-   0.1666   0.1402   0.0162   0.3983   0.2787
-   0.0970   0.3338   0.4466   0.0955   0.0271
-   0.1352   0.2206   0.3901   0.1977   0.0564
-   0.5351   0.2943   0.1343   0.0274   0.0089
+   0.1589   0.1477   0.2829   0.2203   0.1902
+   0.0934   0.2990   0.2964   0.1969   0.1143
+   0.6004   0.2633   0.0592   0.0575   0.0196
+   0.1046   0.1179   0.1255   0.2511   0.4009
+   0.0427   0.1721   0.2360   0.2742   0.2750
 
 Running bootstrap resamples
 storing means
@@ -5702,7 +5832,7 @@ storing sds
 creating stats
 creating flux
 
-      Finished a HyperHMM run. Elapsed =  0.033 
+      Finished a HyperHMM run. Elapsed =  0.031 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 257 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 258 ]
@@ -5713,17 +5843,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 623595451
+  seed: 689184218
   nboot: 0
   fullsample: 1
 
 Found 2000 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.0681   0.0134   0.0132   0.2812   0.6241
-   0.1654   0.1337   0.0189   0.3971   0.2849
-   0.0983   0.3334   0.4454   0.0931   0.0298
-   0.1371   0.2220   0.3903   0.1994   0.0512
-   0.5311   0.2975   0.1322   0.0292   0.0100
+   0.1614   0.1584   0.2747   0.2210   0.1845
+   0.0933   0.2947   0.3051   0.1910   0.1159
+   0.5974   0.2598   0.0626   0.0604   0.0198
+   0.1039   0.1152   0.1250   0.2482   0.4077
+   0.0440   0.1719   0.2326   0.2794   0.2721
 
 Running bootstrap resamples
 storing means
@@ -5739,17 +5869,17 @@ Please cite Moen, M.T. and Johnston, I.G., 2023. HyperHMM: efficient inference o
 
 Attempting to run HyperHMM with the following parameters:
   cross-sectional: 1
-  seed: 798016041
+  seed: 873961225
   nboot: 0
   fullsample: 1
 
 Found 2000 entries with 5 features.
 Mean ordering matrix from sampling:
-   0.0682   0.0143   0.0133   0.2766   0.6276
-   0.1700   0.1320   0.0162   0.3983   0.2835
-   0.0967   0.3326   0.4470   0.0962   0.0275
-   0.1319   0.2214   0.3938   0.2010   0.0519
-   0.5332   0.2997   0.1297   0.0279   0.0095
+   0.1542   0.1483   0.2808   0.2188   0.1979
+   0.0922   0.2947   0.2975   0.1934   0.1222
+   0.5989   0.2652   0.0604   0.0576   0.0179
+   0.1070   0.1180   0.1320   0.2466   0.3964
+   0.0477   0.1738   0.2293   0.2836   0.2656
 
 Running bootstrap resamples
 storing means
@@ -5767,7 +5897,7 @@ creating flux
 ══ Testing kill-MHN-TESTS.R ════════════════════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  535085324 
+ Seed used was  543117745 
 
  MHN 4-gene: procedures 1, 2, 3 vs each other
 
@@ -5790,7 +5920,7 @@ creating flux
 ══ Testing kill-OncoBN-TESTS.R ═════════════════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  281955366 
+ Seed used was  40640117 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
@@ -6759,29 +6889,29 @@ In ev2_adjm_rm_no_access
 ══ Testing kill-OT-TESTS.R ═════════════════════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  472852746 
+ Seed used was  395023849 
 
- Seed used was  884081695 
+ Seed used was  995808355 
 
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
 
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
-
-[ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ][ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
 [ FAIL 0 | WARN 1 | SKIP 0 | PASS 0 ]
@@ -6834,7 +6964,7 @@ Killing by setting parameters to 0
 ══ Testing miscellanea-and-former-issues-TESTS.R ═══════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  504797994 
+ Seed used was  162320255 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
@@ -6861,14 +6991,14 @@ Killing by setting parameters to 0
 [ FAIL 0 | WARN 4 | SKIP 0 | PASS 19 ]
 [ FAIL 0 | WARN 5 | SKIP 0 | PASS 19 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 19 ]
- Seed used was  422952584 
+ Seed used was  421003857 
 
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 20 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 21 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 22 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 23 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 24 ]
- Seed used was  667277974 
+ Seed used was  385625318 
 
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 25 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 26 ]
@@ -6891,7 +7021,7 @@ Killing by setting parameters to 0
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 43 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 44 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 45 ]
- Seed used was  843414348 
+ Seed used was  988310226 
 
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 46 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 47 ]
@@ -6923,9 +7053,9 @@ Killing by setting parameters to 0
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 73 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 74 ]
 [ FAIL 0 | WARN 6 | SKIP 0 | PASS 75 ]
- Seed used was  279760068 
+ Seed used was  52015237 
 
- Seed used was  624533835 
+ Seed used was  570400074 
 
 [ FAIL 0 | WARN 7 | SKIP 0 | PASS 75 ]
 [ FAIL 0 | WARN 8 | SKIP 0 | PASS 75 ]
@@ -7281,7 +7411,7 @@ Backtrace:
 ══ Testing rfitness_to_trm-TESTS.R ═════════════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  186479616 
+ Seed used was  501852622 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
@@ -7293,7 +7423,7 @@ Backtrace:
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 8 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 9 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 10 ]
- Seed used was  476529987 
+ Seed used was  229563718 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 11 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 12 ]
@@ -7318,11 +7448,11 @@ Backtrace:
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 31 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 32 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 33 ]
- Seed used was  197727543 
-
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 34 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 35 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 36 ]
+ Seed used was  281192703 
+
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 37 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 38 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 39 ]
@@ -7335,7 +7465,13 @@ Backtrace:
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 46 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 47 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 48 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 49 ] Done!
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 49 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 50 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 51 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 52 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 53 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 54 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 55 ] Done!
 
 #######################################
 #### Running trans-mat-restrict-renormalize-TESTS.R 
@@ -7423,7 +7559,7 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 48 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 49 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 50 ]
- Seed used was  242502819 
+ Seed used was  35791801 
 
  #################### Doing iteration  1 
 
@@ -7475,9 +7611,7 @@ In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 77 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 78 ]In ev2_adjm_rm_no_access
-In ev2_adjm_rm_no_access
-
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 78 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 79 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 80 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 81 ]
@@ -7508,13 +7642,13 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 106 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 107 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 108 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 109 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 110 ]
  #################### Doing iteration  2 
 
 In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
 
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 109 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 110 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 111 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 112 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 113 ]
@@ -7522,7 +7656,9 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 115 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 116 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 117 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 118 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 118 ]In ev2_adjm_rm_no_access
+In ev2_adjm_rm_no_access
+
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 119 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 120 ]In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
@@ -7560,9 +7696,7 @@ In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 137 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 138 ]In ev2_adjm_rm_no_access
-In ev2_adjm_rm_no_access
-
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 138 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 139 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 140 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 141 ]
@@ -7593,13 +7727,13 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 166 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 167 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 168 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 169 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 170 ]
  #################### Doing iteration  3 
 
 In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
 
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 169 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 170 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 171 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 172 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 173 ]
@@ -7607,7 +7741,9 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 175 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 176 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 177 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 178 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 178 ]In ev2_adjm_rm_no_access
+In ev2_adjm_rm_no_access
+
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 179 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 180 ]In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
@@ -7645,9 +7781,7 @@ In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 197 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 198 ]In ev2_adjm_rm_no_access
-In ev2_adjm_rm_no_access
-
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 198 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 199 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 200 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 201 ]
@@ -7724,9 +7858,13 @@ In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 253 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 254 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 254 ]In ev2_adjm_rm_no_access
+In ev2_adjm_rm_no_access
+
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 255 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 256 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 256 ]In ev2_adjm_rm_no_access
+In ev2_adjm_rm_no_access
+
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 257 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 258 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 259 ]
@@ -7755,29 +7893,23 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 282 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 283 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 284 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 285 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 286 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 287 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 288 ]
  #################### Doing iteration  5 
 
 In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
 
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 285 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 286 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 287 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 288 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 289 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 290 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 291 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 292 ]In ev2_adjm_rm_no_access
-In ev2_adjm_rm_no_access
-
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 292 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 293 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 294 ]In ev2_adjm_rm_no_access
-In ev2_adjm_rm_no_access
-
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 294 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 295 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 296 ]In ev2_adjm_rm_no_access
-In ev2_adjm_rm_no_access
-
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 296 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 297 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 298 ]In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
@@ -7807,11 +7939,17 @@ In ev2_adjm_rm_no_access
 In ev2_adjm_rm_no_access
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 311 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 312 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 312 ]In ev2_adjm_rm_no_access
+In ev2_adjm_rm_no_access
+
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 313 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 314 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 314 ]In ev2_adjm_rm_no_access
+In ev2_adjm_rm_no_access
+
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 315 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 316 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 316 ]In ev2_adjm_rm_no_access
+In ev2_adjm_rm_no_access
+
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 317 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 318 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 319 ]
@@ -7835,7 +7973,15 @@ In ev2_adjm_rm_no_access
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 337 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 338 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 339 ]
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 340 ] Done!
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 340 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 341 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 342 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 343 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 344 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 345 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 346 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 347 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 348 ] Done!
 
 #######################################
 #### Running trm-TESTS.R 
@@ -7845,7 +7991,7 @@ In ev2_adjm_rm_no_access
 ══ Testing trm-TESTS.R ═════════════════════════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  418600922 
+ Seed used was  819298482 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
@@ -7980,7 +8126,7 @@ In ev2_adjm_rm_no_access
 ══ Testing utils-TESTS.R ═══════════════════════════════════════════════════════
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
- Seed used was  877681179 
+ Seed used was  886642064 
 
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
 [ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
