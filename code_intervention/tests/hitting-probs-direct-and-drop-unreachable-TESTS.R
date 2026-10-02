@@ -331,4 +331,68 @@ test_that("45-absorbing fixture: direct correct (formerly also legacy markovchai
   ## }
 })
 
+
+## Regression test for the cancellation bug fixed on 2026-09-29 (see the
+## comments in hitting_probs_from_WT_direct, trm.R). A state whose
+## diagonal is very close to 1 (escape probability e between 1e-12 and
+## 1e-7) is exactly what is left after killing a gene removes a
+## genotype's main exit. The old code computed the escape as
+## rowSums(m) - diag(m) and 1 - Q[j, j]; both cancel catastrophically
+## and gave hitting probabilities off by ~2e-16 / e: outside
+## [-1e-9, 1 + 1e-9] for about 40% of the e values below, and by up to
+## 1e-5 for e near 1e-12. The random-landscape tests above hit this
+## only about once every 565 runs, so this test pins it deterministically.
+## Chain: WT -> A with probability e, A -> B with probability 1, B
+## absorbing. Exact hitting probabilities from WT: A = 1, B = 1,
+## WT = 1 - e (its self-loop return probability).
+##
+## Why the tolerance is 1e-11. The two sides of the trade-off:
+##
+## - Catching the bug: the old code's error is ~2e-16 / e, so it is
+##   smallest for the largest e in the sweep (e = 1e-7), about 5e-10.
+##   Measured on 2026-10-01 against the old code, over the 50 values of
+##   e below: 1e-12 and 1e-11 fail all 50, 1e-10 fails 49, 1e-9 fails
+##   42. So 1e-11 is the loosest tolerance that still catches every
+##   case, with a 50x margin.
+##
+## - Not failing for silly numerical reasons: the new code's error is
+##   at machine precision (~1e-16 here), but a different BLAS/LAPACK
+##   (reference, OpenBLAS, MKL, Accelerate, Docker) can order the
+##   operations in solve() differently and drift by a few ulps. 1e-11
+##   leaves a margin of ~5e4 ulps for that; 1e-14 would leave ~50.
+##
+## False positives is a serious problem for an issue that is now being
+## dealt in a way that is not really dependent on this code: we
+## threshold before we do anything, and newer versions of markovchain
+## have the underlying problem satisfactorily dealt with. Using 1e-12 or
+## 1e-14 is making the wrong trade-off. Details follow:
+##
+## - A false positive here is expensive out of proportion.
+##   run-all-tests.R aborts on any failure, so one spurious failure in
+##   this block would halt an entire test run of a file that, as its
+##   header says, tests the fallback route, not the default one. The
+##   default is thresholding plus markovchain, and
+##   hitting_probs_from_WT_direct (trm.R) is kept as the cross-check in
+##   the divergence report.
+##
+## - A missed catch is cheap. If this test ever let the cancellation
+##   slip back in at a 1e-11 level, nothing downstream would notice: the
+##   divergence check against markovchain is the real safety net, and
+##   the random-landscape test above ("B) direct hitting probs are valid
+##   and match Monte Carlo") still runs with 1e-9.
+test_that("near-1 diagonal: no cancellation error in direct hitting probs", {
+  states <- c("WT", "A", "B")
+  for (e in 10^seq(-7, -11.9, by = -0.1)) {
+    m <- matrix(0, 3, 3, dimnames = list(states, states))
+    m["WT", "WT"] <- 1 - e
+    m["WT", "A"] <- e
+    m["A", "B"] <- 1
+    m["B", "B"] <- 1
+    hp <- hitting_probs_from_WT_direct(m)
+    expect_equal(hp[["A"]], 1, tolerance = 1e-11)
+    expect_equal(hp[["B"]], 1, tolerance = 1e-11)
+    expect_equal(hp[["WT"]], 1 - e, tolerance = 1e-11)
+  }
+})
+
 set.seed(NULL)
